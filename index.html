@@ -142,7 +142,6 @@
       </div>
 
       <div class="p-5">
-        <!-- ALWAYS REQUIRE PASSWORD -->
         <div id="adminLoginBox" class="max-w-md mx-auto bg-gray-50 border rounded-3xl p-5">
           <div id="adminLoginTitle" class="font-extrabold mb-2">تسجيل الدخول</div>
           <div id="adminLoginSub" class="text-xs text-gray-500 mb-3">دخل كلمة السر ديال Admin</div>
@@ -393,7 +392,7 @@
         <span id="syncBadge" class="text-sm bg-green-100 text-green-700 px-3 py-1 rounded-full animate-pulse">مزامنة</span>
       </div>
 
-      <!-- ✅ CUSTOMER SERVICES (من الكود الأول): الرحلة + موقع الزبون -->
+      <!-- ✅ هذا هو القسم اللي بغيت تخليه (طلب رحلة + موقع الزبون) -->
       <div class="bg-white border border-gray-100 rounded-3xl p-4 soft-shadow mb-4 space-y-4">
 
         <!-- Trip -->
@@ -470,53 +469,18 @@
         </div>
       </div>
 
-      <!-- Filters -->
+      <!-- ✅ بدل "الفلاتر" اللي فالصورة: خلّينا غير بحث بسيط على السائق + تحديث + عدّاد -->
       <div class="bg-white border border-gray-100 rounded-3xl p-4 soft-shadow mb-4">
-        <div class="grid md:grid-cols-4 gap-3">
-          <div>
-            <label id="lblFilterCity" class="text-xs font-black text-gray-500">فلتر مدينة</label>
-            <input id="filterCity" list="citiesList" class="w-full border-2 border-gray-100 p-3 rounded-xl ring-focus" placeholder="مثال: Casablanca">
-          </div>
-          <div>
-            <label id="lblFilterArea" class="text-xs font-black text-gray-500">فلتر حي</label>
-            <input id="filterArea" class="w-full border-2 border-gray-100 p-3 rounded-xl ring-focus" placeholder="المعاريف...">
-          </div>
-          <div>
-            <label id="lblFilterVeh" class="text-xs font-black text-gray-500">نوع المركبة</label>
-            <select id="filterVehicle" class="w-full border-2 border-gray-100 p-3 rounded-xl ring-focus">
-              <option value="" id="optAll2">الكل</option>
-              <option value="سيارة">سيارة</option>
-              <option value="دراجة">دراجة</option>
-            </select>
-          </div>
-          <div>
-            <label id="lblSort" class="text-xs font-black text-gray-500">ترتيب</label>
-            <select id="sortBy" class="w-full border-2 border-gray-100 p-3 rounded-xl ring-focus">
-              <option value="new" id="sortNew">الأحدث</option>
-              <option value="old" id="sortOld">الأقدم</option>
-              <option value="active" id="sortActive">المفعّلين أولا</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="grid md:grid-cols-4 gap-3 mt-3 items-end">
+        <div class="grid md:grid-cols-3 gap-3 items-end">
           <div class="md:col-span-2">
-            <label id="lblSearch" class="text-xs font-black text-gray-500">بحث</label>
-            <input id="searchQ" class="w-full border-2 border-gray-100 p-3 rounded-xl ring-focus" placeholder="الإسم/الرقم/الحي...">
-          </div>
-          <div>
-            <label id="lblRadius" class="text-xs font-black text-gray-500">القرب (KM)</label>
-            <select id="radiusKm" class="w-full border-2 border-gray-100 p-3 rounded-xl ring-focus">
-              <option value="2">2 KM</option>
-              <option value="5" selected>5 KM</option>
-              <option value="10">10 KM</option>
-              <option value="20">20 KM</option>
-              <option value="50">50 KM</option>
-            </select>
+            <label id="lblSearchOnly" class="text-xs font-black text-gray-500">بحث على سائق</label>
+            <input id="customerSearch" class="w-full border-2 border-gray-100 p-3 rounded-xl ring-focus"
+                   placeholder="الإسم/الرقم/المدينة/الحي...">
+            <p id="searchHint" class="text-[11px] text-gray-400 mt-2">* كتب الاسم أو الرقم أو المدينة أو الحي.</p>
           </div>
           <div class="flex gap-2">
-            <button id="nearToggle" class="w-full px-4 py-3 rounded-xl border font-black text-sm bg-gray-100 hover:bg-gray-200 transition" aria-pressed="false">
-              قريب مني
+            <button id="refreshBtn" class="w-full px-4 py-3 rounded-xl border font-black text-sm bg-white hover:bg-gray-50 transition">
+              تحديث <i class="fas fa-rotate mr-1"></i>
             </button>
           </div>
         </div>
@@ -525,14 +489,6 @@
           <div class="flex gap-2 flex-wrap">
             <span class="pill bg-gray-50 text-gray-700" id="countPill">—</span>
             <span class="pill bg-gray-50 text-gray-700" id="updatedPill">—</span>
-          </div>
-          <div class="flex gap-2">
-            <button id="refreshBtn" class="px-4 py-2 rounded-2xl border font-black hover:bg-gray-50">
-              تحديث <i class="fas fa-rotate mr-1"></i>
-            </button>
-            <button id="clearCacheBtn" class="px-4 py-2 rounded-2xl border font-black hover:bg-gray-50">
-              حذف المحفوظ <i class="fas fa-broom mr-1"></i>
-            </button>
           </div>
         </div>
       </div>
@@ -605,7 +561,7 @@
     const SUB_DAYS = 8;                 // ✅ 8 أيام
     const SUB_MS = SUB_DAYS * 24 * 60 * 60 * 1000;
 
-    // تقدير الثمن (من الكود الأول)
+    // تقدير الثمن
     const FARES = {
       car:  { base: 8, perKm: 3.2, perMin: 0.0 },
       moto: { base: 6, perKm: 2.4, perMin: 0.0 }
@@ -631,8 +587,8 @@
     const LANG_KEY    = "tawsila_lang_v1";
     const LAST_DRIVER_PHONE = "tawsila_last_driver_phone_v1";
     const RATINGS_KEY = "tawsila_user_ratings_v1";
-    const FILTERS_KEY = "tawsila_filters_v7";
     const TRIP_KEY    = "tawsila_trip_v4";
+    const SEARCH_KEY  = "tawsila_customer_search_v1";
 
     /********************
      * Morocco cities
@@ -653,7 +609,6 @@
      ********************/
     const $ = (id)=>document.getElementById(id);
 
-    function nowMs(){ return Date.now(); }
     function fmtDate(ms){
       if(!ms) return "—";
       try{
@@ -714,7 +669,7 @@
     }
 
     /********************
-     * i18n (مختصر + عملي)
+     * i18n
      ********************/
     const I18N = {
       ar: {
@@ -759,7 +714,6 @@
         locNote:"* كيجيب لك حتى الحي/الشارع إذا متاح.",
         enableLoc:"تفعيل موقعي",
 
-        nearMe:"قريب مني",
         noDrivers:"ما كاين حتى سائق حاليا. جرّب \"تحديث\".",
         countPill:"عدد السائقين: {n}",
         updatedPill:"آخر تحديث: {d}",
@@ -797,7 +751,10 @@
         actPending:"Pending",
         actExpire:"إنهاء",
         actDelete:"حذف",
-        confirmDelete:"متأكد باغي تحذف هاد السائق؟"
+        confirmDelete:"متأكد باغي تحذف هاد السائق؟",
+
+        searchOnlyLbl:"بحث على سائق",
+        searchHint:"* كتب الاسم أو الرقم أو المدينة أو الحي."
       },
       fr: {
         adminBtn:"Admin",
@@ -841,7 +798,6 @@
         locNote:"* Quartier/rue si disponible.",
         enableLoc:"Activer ma position",
 
-        nearMe:"Près de moi",
         noDrivers:"Aucun chauffeur pour le moment. Rafraîchis.",
         countPill:"Chauffeurs: {n}",
         updatedPill:"Dernière maj: {d}",
@@ -879,7 +835,10 @@
         actPending:"Pending",
         actExpire:"Expirer",
         actDelete:"Supprimer",
-        confirmDelete:"Confirmer la suppression ?"
+        confirmDelete:"Confirmer la suppression ?",
+
+        searchOnlyLbl:"Rechercher un chauffeur",
+        searchHint:"* Nom / tél / ville / quartier."
       },
       en: {
         adminBtn:"Admin",
@@ -923,7 +882,6 @@
         locNote:"* Area/street if available.",
         enableLoc:"Enable my location",
 
-        nearMe:"Near me",
         noDrivers:"No drivers for now. Refresh.",
         countPill:"Drivers: {n}",
         updatedPill:"Last update: {d}",
@@ -961,7 +919,10 @@
         actPending:"Pending",
         actExpire:"Expire",
         actDelete:"Delete",
-        confirmDelete:"Confirm delete?"
+        confirmDelete:"Confirm delete?",
+
+        searchOnlyLbl:"Search drivers",
+        searchHint:"* Name / phone / city / area."
       }
     };
 
@@ -985,12 +946,12 @@
       updatedAt: 0,
       userPos: null,
       userAddressText: "",
-      nearEnabled: false,
       regDriverPos: null,
       tripPick: { from:null, to:null },
       trip: null,
       adminLogged: false,
-      adminTab: "all"
+      adminTab: "all",
+      searchQ: localStorage.getItem(SEARCH_KEY) || ""
     };
 
     /********************
@@ -1013,11 +974,8 @@
     function saveTrip(obj){ localStorage.setItem(TRIP_KEY, JSON.stringify(obj)); }
     function loadTrip(){ try{ return JSON.parse(localStorage.getItem(TRIP_KEY)||"null"); }catch(_){ return null; } }
 
-    function saveFilters(obj){ localStorage.setItem(FILTERS_KEY, JSON.stringify(obj||{})); }
-    function loadFilters(){ try{ return JSON.parse(localStorage.getItem(FILTERS_KEY)||"{}"); }catch(_){ return {}; } }
-
     /********************
-     * Remote Sync (GET/POST مثل الكود الأول)
+     * Remote Sync
      ********************/
     async function remoteGetState(){
       if(!REMOTE_API_URL) return null;
@@ -1026,7 +984,6 @@
         if(!res.ok) throw new Error("GET failed");
         const data = await res.json();
 
-        // Accept: Array OR {drivers,updatedAt}
         if(Array.isArray(data)) return { updatedAt: 0, drivers: data };
         const drivers = Array.isArray(data.drivers) ? data.drivers : null;
         if(!drivers) return null;
@@ -1072,7 +1029,6 @@
     }
 
     async function syncFromRemoteFirst(){
-      // remote first
       const st = await remoteGetState();
       if(st && Array.isArray(st.drivers)){
         state.drivers = normalizeDrivers(st.drivers);
@@ -1081,13 +1037,12 @@
         setApiPill(true);
         return true;
       }
-      // fallback cache
       const cached = loadCache();
       if(cached && Array.isArray(cached.drivers)){
         state.drivers = normalizeDrivers(cached.drivers);
         state.updatedAt = Number(cached.updatedAt||0);
       } else {
-        state.drivers = []; // start empty
+        state.drivers = [];
         state.updatedAt = 0;
       }
       setApiPill(false);
@@ -1137,7 +1092,7 @@
     }
 
     /********************
-     * Geo (Nominatim + OSRM) من الكود الأول
+     * Geo (Nominatim + OSRM)
      ********************/
     function geoLang(){
       return state.lang === "fr" ? "fr" : (state.lang === "en" ? "en" : "ar");
@@ -1376,7 +1331,6 @@
       $("driversTitle").textContent = tr("driversTitle");
       $("syncBadge").textContent = tr("sync");
 
-      // customer services
       $("tripTitle").textContent = tr("tripTitle");
       $("tripNote").textContent = tr("tripNote");
       $("tripStatus").textContent = tr("ready");
@@ -1387,16 +1341,15 @@
       $("userLocNote").textContent = tr("locNote");
       $("enableLocTxt").textContent = tr("enableLoc");
 
-      $("nearToggle").textContent = tr("nearMe");
+      $("lblSearchOnly").textContent = tr("searchOnlyLbl");
+      $("searchHint").textContent = tr("searchHint");
 
-      // admin texts
       $("adminTitle").textContent = tr("adminTitle");
       $("adminSub").textContent = tr("adminSub");
       $("adminLoginTitle").textContent = tr("loginTitle");
       $("adminLoginSub").textContent = tr("loginSub");
       if($("adminLoginErr").classList.contains("hidden") === false) $("adminLoginErr").textContent = tr("passWrong");
 
-      // update API pill text
       setApiPill(true);
     }
 
@@ -1460,7 +1413,6 @@
           const r = await reverseGeocode(state.regDriverPos.lat, state.regDriverPos.lon);
           const label = niceLabelFromAddress(r.addr) || r.display || "OK";
           $("driverLocText").textContent = `✅ ${label}`;
-          // auto-fill area if empty
           if(!($("driverAreaInput").value||"").trim()){
             $("driverAreaInput").value = (r.addr.road || r.addr.neighbourhood || r.addr.suburb || label || "").toString().trim();
           }
@@ -1474,7 +1426,7 @@
     }
 
     /********************
-     * Trip (from الكود الأول)
+     * Trip
      ********************/
     function setTripStatus(text, kind){
       const el = $("tripStatus");
@@ -1529,7 +1481,6 @@
         showTripResult(route);
         setTripStatus("OK", "ok");
 
-        // Center map
         const midLat = (finalFrom.lat + finalTo.lat)/2;
         const midLon = (finalFrom.lon + finalTo.lon)/2;
         if(map) map.setView([midLat, midLon], 12);
@@ -1545,43 +1496,14 @@
     }
 
     /********************
-     * Filters
+     * Drivers search (customer)
      ********************/
-    function getFilters(){
-      const raw = loadFilters();
-      return {
-        city: raw.city || "",
-        area: raw.area || "",
-        vehicle: raw.vehicle || "",
-        sortBy: raw.sortBy || "new",
-        q: raw.q || "",
-        near: !!raw.near,
-        radiusKm: raw.radiusKm || "5"
-      };
-    }
-    function setFilters(p){
-      const cur = getFilters();
-      const next = { ...cur, ...p };
-      saveFilters(next);
-      return next;
-    }
     function normalizeStr(s){ return String(s||"").trim().toLowerCase(); }
 
     function computeFilteredDrivers(){
-      const f = getFilters();
-      const city = normalizeStr(f.city);
-      const area = normalizeStr(f.area);
-      const vehicle = f.vehicle || "";
-      const q = normalizeStr(f.q);
-      const near = !!f.near;
-      const radiusKm = Number(f.radiusKm || 5);
-
-      // ✅ المطلوب: الزبون يشوف جميع السائقين (الجدد والقدامى) بدون حجب
       let list = state.drivers.slice();
+      const q = normalizeStr(state.searchQ);
 
-      if(city) list = list.filter(d => normalizeStr(d.city).includes(city));
-      if(area) list = list.filter(d => normalizeStr(d.area).includes(area));
-      if(vehicle) list = list.filter(d => d.vehicle === vehicle);
       if(q){
         list = list.filter(d => {
           const hay = `${d.name} ${d.phone} ${d.city} ${d.area} ${d.vehicle}`.toLowerCase();
@@ -1589,37 +1511,13 @@
         });
       }
 
-      if(near && state.userPos){
-        list = list
-          .map(d => {
-            const km = (typeof d.lat === "number" && typeof d.lon === "number")
-              ? distanceKm(state.userPos.lat, state.userPos.lon, d.lat, d.lon)
-              : Infinity;
-            return { ...d, _nearKm: km };
-          })
-          .filter(d => d._nearKm <= radiusKm)
-          .sort((a,b) => (a._nearKm||0) - (b._nearKm||0));
-      }
-
-      // sort
-      if(f.sortBy === "old"){
-        list.sort((a,b) => (a.createdAt||0) - (b.createdAt||0));
-      } else if(f.sortBy === "active"){
-        list.sort((a,b) => {
-          const aa = isActive(a) ? 0 : 1;
-          const bb = isActive(b) ? 0 : 1;
-          if(aa !== bb) return aa - bb;
-          return (b.createdAt||0) - (a.createdAt||0);
-        });
-      } else {
-        list.sort((a,b) => (b.createdAt||0) - (a.createdAt||0));
-      }
-
+      // show newest first by default
+      list.sort((a,b) => (b.createdAt||0) - (a.createdAt||0));
       return list;
     }
 
     /********************
-     * Rating (من الكود الأول)
+     * Rating
      ********************/
     function renderStarsStatic(avg){
       avg = Number(avg||0);
@@ -1677,7 +1575,7 @@
     }
 
     /********************
-     * Render Drivers (cards + map)
+     * Render Drivers
      ********************/
     function statusBadge(d){
       const active = isActive(d);
@@ -1694,7 +1592,6 @@
       const ratingsMap = loadRatings();
       const currentUserRating = ratingsMap[d.id] || 0;
 
-      // subscription line
       let subLine = "";
       if(isActive(d)){
         const rem = formatRemaining(Number(d.subExpiresAt) - Date.now());
@@ -1896,7 +1793,6 @@
       $("afterRegisterBox").classList.remove("hidden");
       toastNote("success", "تسجلتي ✅ دابا غادي يتحل WhatsApp باش ترسل الوصل للإدارة.");
 
-      // Open WhatsApp to admin (message contains all driver info + city/area)
       const msg =
 `TAWSILA.ma — Activation
 
@@ -2052,7 +1948,6 @@ Please send receipt here.`
         <tr><td colspan="8" class="text-center text-gray-500 font-black py-6">—</td></tr>
       `;
 
-      // activate tab button style
       document.querySelectorAll(".adminTab").forEach(b=>{
         const tab = b.getAttribute("data-tab");
         const on = tab === state.adminTab;
@@ -2098,13 +1993,11 @@ Please send receipt here.`
 
     function renderAll(){
       applyLang();
-
-      // role visibility
       applyRole();
 
-      // customer
       if(state.role === "customer"){
         initMap();
+
         const list = computeFilteredDrivers();
         renderCounts(list);
 
@@ -2116,12 +2009,12 @@ Please send receipt here.`
         renderMapMarkers(list);
         attachRatingEvents();
         bindShowOnMapButtons();
+
+        // keep search input value
+        $("customerSearch").value = state.searchQ || "";
       }
 
-      // lock
       enforceDriverLockUI();
-
-      // admin
       if(state.adminLogged) renderAdmin();
     }
 
@@ -2137,22 +2030,6 @@ Please send receipt here.`
         if(saved.trip?.toText) $("tripTo").value = saved.trip.toText;
         if(saved.trip?.distanceKm) showTripResult(saved.trip);
       }
-    }
-
-    function restoreFiltersUI(){
-      const f = getFilters();
-      $("filterCity").value = f.city || "";
-      $("filterArea").value = f.area || "";
-      $("filterVehicle").value = f.vehicle || "";
-      $("sortBy").value = f.sortBy || "new";
-      $("searchQ").value = f.q || "";
-      $("radiusKm").value = f.radiusKm || "5";
-
-      state.nearEnabled = !!f.near;
-      $("nearToggle").setAttribute("aria-pressed", state.nearEnabled ? "true" : "false");
-      $("nearToggle").classList.toggle("bg-green-100", state.nearEnabled);
-      $("nearToggle").classList.toggle("border-green-200", state.nearEnabled);
-      $("nearToggle").classList.toggle("text-green-800", state.nearEnabled);
     }
 
     function bindEvents(){
@@ -2199,14 +2076,12 @@ Please send receipt here.`
       };
 
       $("switchRoleBtn").onclick = () => {
-        // toggle role and show role modal
         localStorage.removeItem(ROLE_KEY);
         state.role = "";
         openRoleModal();
         applyRole();
       };
 
-      // Driver register
       $("driverPhone").addEventListener("blur", autoFillByPhone);
       $("registerBtn").onclick = registerDriver;
       $("checkStatusBtn").onclick = checkStatus;
@@ -2232,7 +2107,6 @@ Subscription: ${SUB_PRICE_DH} DH / ${SUB_DAYS} days
 
       $("driverLocBtn").onclick = enableDriverLocation;
 
-      // Customer location + map buttons
       $("userLocBtn").onclick = enableUserLocation;
       $("myLocBtn").onclick = enableUserLocation;
 
@@ -2249,7 +2123,6 @@ Subscription: ${SUB_PRICE_DH} DH / ${SUB_DAYS} days
         renderAll();
       };
 
-      // Trip
       $("calcTripBtn").onclick = calcTrip;
       $("useMyLocAsFrom").onclick = async () => {
         if(!state.userPos){
@@ -2258,7 +2131,7 @@ Subscription: ${SUB_PRICE_DH} DH / ${SUB_DAYS} days
         }
         try{
           const r = await reverseGeocode(state.userPos.lat, state.userPos.lon);
-          const label = niceLabelFromAddress(r.addr) || tr("myLocation") || "My location";
+          const label = niceLabelFromAddress(r.addr) || "My location";
           $("tripFrom").value = label;
           state.tripPick.from = { label, lat: state.userPos.lat, lon: state.userPos.lon };
           saveTrip({ trip: state.trip, tripPick: state.tripPick });
@@ -2272,43 +2145,20 @@ Subscription: ${SUB_PRICE_DH} DH / ${SUB_DAYS} days
         }
       };
 
-      // Filters
-      $("filterCity").oninput = () => { setFilters({ city: $("filterCity").value }); renderAll(); };
-      $("filterArea").oninput = () => { setFilters({ area: $("filterArea").value }); renderAll(); };
-      $("filterVehicle").onchange = () => { setFilters({ vehicle: $("filterVehicle").value }); renderAll(); };
-      $("sortBy").onchange = () => { setFilters({ sortBy: $("sortBy").value }); renderAll(); };
-      $("searchQ").oninput = () => { setFilters({ q: $("searchQ").value }); renderAll(); };
-      $("radiusKm").onchange = () => { setFilters({ radiusKm: $("radiusKm").value }); renderAll(); };
-
-      $("nearToggle").onclick = () => {
-        const f = getFilters();
-        const next = !f.near;
-        setFilters({ near: next });
-        $("nearToggle").setAttribute("aria-pressed", next ? "true" : "false");
-        $("nearToggle").classList.toggle("bg-green-100", next);
-        $("nearToggle").classList.toggle("border-green-200", next);
-        $("nearToggle").classList.toggle("text-green-800", next);
+      // ✅ بحث الزبون على السائق
+      $("customerSearch").addEventListener("input", () => {
+        state.searchQ = $("customerSearch").value || "";
+        localStorage.setItem(SEARCH_KEY, state.searchQ);
         renderAll();
-      };
+      });
 
+      // refresh
       $("refreshBtn").onclick = async () => {
         await remotePoll();
         renderAll();
       };
 
-      $("clearCacheBtn").onclick = () => {
-        localStorage.removeItem(STORAGE_KEY);
-        localStorage.removeItem(FILTERS_KEY);
-        localStorage.removeItem(RATINGS_KEY);
-        localStorage.removeItem(TRIP_KEY);
-        localStorage.removeItem(LAST_DRIVER_PHONE);
-        localStorage.removeItem(ROLE_KEY);
-        toastNote("success", "تم حذف المحفوظ.");
-        state.role = "";
-        openRoleModal();
-      };
-
-      // Autocomplete: driver area + trip from/to (من الكود الأول)
+      // Autocomplete
       attachAutocomplete({ inputId:"driverAreaInput", listId:"driverAreaList", onPick:()=>{} });
       attachAutocomplete({
         inputId:"tripFrom",
@@ -2321,7 +2171,6 @@ Subscription: ${SUB_PRICE_DH} DH / ${SUB_DAYS} days
         onPick:(p)=>{ state.tripPick.to = p; saveTrip({ trip: state.trip, tripPick: state.tripPick }); renderAll(); }
       });
 
-      // close admin when clicking backdrop
       $("adminModal").addEventListener("click", (e)=>{ if(e.target.id === "adminModal") closeAdminModal(); });
     }
 
@@ -2329,19 +2178,16 @@ Subscription: ${SUB_PRICE_DH} DH / ${SUB_DAYS} days
       buildCities();
       initSocials();
 
-      // default texts for driver loc
       $("driverLocText").setAttribute("data-default", $("driverLocText").textContent);
 
-      // load from remote/cache
       await syncFromRemoteFirst();
 
-      // restore UI
       restoreTrip();
-      restoreFiltersUI();
 
-      // role
+      // restore search value
+      $("customerSearch").value = state.searchQ || "";
+
       if(!state.role){
-        // hide sections until choose
         $("registerSection").classList.add("hidden");
         $("customerSection").classList.add("hidden");
         $("goRegister").classList.add("hidden");
@@ -2350,13 +2196,11 @@ Subscription: ${SUB_PRICE_DH} DH / ${SUB_DAYS} days
         applyRole();
       }
 
-      // set whatsapp footer
       $("footWa").href = SOCIAL_LINKS.whatsapp;
 
       bindEvents();
       renderAll();
 
-      // poll
       setInterval(remotePoll, 8000);
     }
 
