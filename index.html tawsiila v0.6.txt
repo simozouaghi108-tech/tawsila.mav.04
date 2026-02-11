@@ -1,0 +1,2235 @@
+﻿<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TAWSILA.ma</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+
+  <!-- Leaflet -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+          integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;800;900&display=swap');
+    body { font-family: 'Tajawal', sans-serif; scroll-behavior: smooth; }
+    .hero-bg { background: linear-gradient(135deg, #c1272d 0%, #006233 100%); }
+    .soft-shadow { box-shadow: 0 12px 30px rgba(0,0,0,.08); }
+    .ring-focus:focus { outline: none; box-shadow: 0 0 0 4px rgba(193,39,45,.15); border-color: #c1272d; }
+    .pill{ font-size: 11px; padding: 4px 10px; border-radius: 999px; border:1px solid #eee; font-weight: 800; }
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
+
+    #map { height: 240px; border-radius: 1.5rem; overflow: hidden; }
+    @media (min-width: 1024px){ #map { height: 320px; } }
+
+    .map-wrap { position: relative; }
+    .map-wrap.map-fullscreen{
+      position: fixed; inset: 0; z-index: 9999;
+      background: rgba(255,255,255,.98);
+      padding: 12px;
+      display: flex; flex-direction: column; gap: 10px;
+    }
+    .map-wrap.map-fullscreen #map{ height: calc(100vh - 90px); border-radius: 18px; }
+    .map-full-topbar{ display:none; }
+    .map-wrap.map-fullscreen .map-full-topbar{
+      display:flex; align-items:center; justify-content:space-between; gap: 10px;
+      padding: 10px 12px; border: 1px solid #eee; border-radius: 16px; background: #fff;
+      box-shadow: 0 10px 25px rgba(0,0,0,.06);
+    }
+    .map-fab{
+      position:absolute; top: 10px; right: 10px; z-index: 500;
+      display:flex; gap:8px;
+    }
+    .fab-btn{
+      background:#111; color:#fff; border:none; border-radius: 14px;
+      padding: 10px 12px; font-weight: 900; font-size: 12px;
+      box-shadow: 0 10px 22px rgba(0,0,0,.15);
+      cursor:pointer;
+    }
+    .fab-btn.secondary{
+      background:#fff; color:#111; border:1px solid #eee;
+      box-shadow: 0 10px 22px rgba(0,0,0,.08);
+    }
+
+    .auto-box{ position: relative; }
+    .auto-list{
+      position:absolute; top: calc(100% + 6px); right: 0; left: 0;
+      background:#fff; border:1px solid #eee; border-radius: 14px;
+      box-shadow: 0 18px 30px rgba(0,0,0,.10);
+      overflow:hidden; z-index: 999;
+      max-height: 260px; overflow-y:auto; display:none;
+    }
+    .auto-item{ padding: 10px 12px; cursor:pointer; border-bottom:1px solid #f3f3f3; }
+    .auto-item:hover{ background:#f8fafc; }
+    .auto-item b{ display:block; font-size: 13px; color:#111; }
+    .auto-item span{ display:block; font-size: 11px; color:#6b7280; margin-top:2px; }
+
+    .lock-overlay{
+      position:absolute; inset:0; background: rgba(255,255,255,.92);
+      border-radius: 1.5rem; z-index: 50;
+      display:none; padding: 18px; align-items:center; justify-content:center; text-align:center;
+      backdrop-filter: blur(6px);
+    }
+    .lock-overlay.show{ display:flex; }
+
+    .table-wrap{ overflow:auto; border-radius: 16px; border:1px solid #eee; }
+    table{ width:100%; border-collapse: collapse; min-width: 980px; }
+    th,td{ padding: 10px 12px; border-bottom:1px solid #f2f2f2; text-align: start; font-size: 12px; vertical-align: top; }
+    th{ background:#fafafa; position: sticky; top: 0; z-index: 1; }
+    .role-card{ box-shadow: 0 20px 50px rgba(0,0,0,.16); }
+    .btn{ border-radius: 16px; padding: 10px 12px; font-weight: 900; }
+
+    /* RTL/LTR helpers for small spacing swap (minimal) */
+    html[dir="ltr"] .ml-1{ margin-left:0!important; margin-right:.25rem!important; }
+    html[dir="ltr"] .ml-2{ margin-left:0!important; margin-right:.5rem!important; }
+    html[dir="ltr"] .ml-3{ margin-left:0!important; margin-right:.75rem!important; }
+    html[dir="ltr"] .mr-1{ margin-right:0!important; margin-left:.25rem!important; }
+    html[dir="ltr"] .mr-2{ margin-right:0!important; margin-left:.5rem!important; }
+    html[dir="ltr"] .mr-3{ margin-right:0!important; margin-left:.75rem!important; }
+  </style>
+</head>
+
+<body class="bg-gray-50 text-gray-900">
+
+  <!-- ROLE PICK MODAL -->
+  <div id="roleModal" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-[200] p-4 backdrop-blur-sm">
+    <div class="bg-white p-7 rounded-[2rem] max-w-md w-full role-card">
+      <div class="text-center mb-5">
+        <div class="w-16 h-16 rounded-full bg-gray-100 text-gray-900 flex items-center justify-center mx-auto text-2xl mb-3">
+          <i class="fas fa-user-check"></i>
+        </div>
+        <div id="roleTitle" class="text-2xl font-extrabold text-gray-900">مرحبا 👋</div>
+        <div id="roleSub" class="text-sm text-gray-500 mt-1">اختار: واش نتا <b>سائق</b> ولا <b>زبون</b>؟</div>
+      </div>
+
+      <div class="grid grid-cols-1 gap-3">
+        <button id="pickCustomer" class="w-full bg-gray-900 text-white py-4 rounded-2xl font-extrabold text-lg hover:opacity-90 transition">
+          <i class="fas fa-person-walking ml-2"></i> أنا زبون
+        </button>
+        <button id="pickDriver" class="w-full bg-red-600 text-white py-4 rounded-2xl font-extrabold text-lg hover:bg-red-700 transition">
+          <i class="fas fa-car-side ml-2"></i> أنا سائق
+        </button>
+      </div>
+
+      <div id="roleHint" class="text-[11px] text-gray-400 mt-4 text-center">
+        * تقدر تبدّل الدور من زر "تبديل الدور" فالفوتر.
+      </div>
+    </div>
+  </div>
+
+  <!-- ADMIN MODAL -->
+  <div id="adminModal" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-[210] p-4 backdrop-blur-sm">
+    <div class="bg-white rounded-[2rem] max-w-5xl w-full role-card overflow-hidden">
+      <div class="p-5 border-b flex items-center justify-between gap-3">
+        <div class="flex items-center gap-3">
+          <div class="w-11 h-11 rounded-2xl bg-gray-900 text-white flex items-center justify-center">
+            <i class="fas fa-shield-halved"></i>
+          </div>
+          <div>
+            <div id="adminTitle" class="font-extrabold text-lg">لوحة الإدارة</div>
+            <div id="adminSub" class="text-xs text-gray-500">كتشوف السائقين من أي متصفح + تفعيل 8 أيام</div>
+          </div>
+        </div>
+        <button id="adminClose" class="px-4 py-2 rounded-2xl border font-extrabold hover:bg-gray-50">
+          إغلاق <i class="fas fa-xmark mr-1"></i>
+        </button>
+      </div>
+
+      <div class="p-5">
+        <div id="adminLoginBox" class="max-w-md mx-auto bg-gray-50 border rounded-3xl p-5">
+          <div id="adminLoginTitle" class="font-extrabold mb-2">تسجيل الدخول</div>
+          <div id="adminLoginSub" class="text-xs text-gray-500 mb-3">دخل كلمة السر ديال Admin</div>
+          <input id="adminPass" type="password" class="w-full border-2 border-gray-100 p-3 rounded-2xl ring-focus" placeholder="Password">
+          <button id="adminLoginBtn" class="w-full mt-3 bg-gray-900 text-white py-3 rounded-2xl font-extrabold hover:opacity-90">
+            دخول
+          </button>
+          <p id="adminLoginErr" class="hidden mt-2 text-sm font-extrabold text-red-600"></p>
+        </div>
+
+        <div id="adminPanel" class="hidden">
+          <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-4">
+            <div class="flex gap-2 flex-wrap">
+              <button data-tab="all" class="adminTab btn border bg-white hover:bg-gray-50">الكل</button>
+              <button data-tab="pending" class="adminTab btn border bg-white hover:bg-gray-50">بانتظار الوصل</button>
+              <button data-tab="active" class="adminTab btn border bg-white hover:bg-gray-50">مفعّلين</button>
+              <button data-tab="expired" class="adminTab btn border bg-white hover:bg-gray-50">منتهيين</button>
+            </div>
+            <div class="flex gap-2">
+              <button id="adminRefreshBtn" class="btn border bg-white hover:bg-gray-50">
+                تحديث <i class="fas fa-rotate mr-1"></i>
+              </button>
+              <button id="adminLogoutBtn" class="btn border bg-white hover:bg-gray-50">
+                خروج <i class="fas fa-right-from-bracket mr-1"></i>
+              </button>
+            </div>
+          </div>
+
+          <div class="grid md:grid-cols-3 gap-3 mb-4">
+            <div class="bg-gray-50 border rounded-3xl p-4">
+              <div id="kpiTotalLbl" class="text-xs text-gray-500 font-extrabold">إجمالي السائقين</div>
+              <div id="kpiTotal" class="text-2xl font-extrabold mt-1">—</div>
+            </div>
+            <div class="bg-gray-50 border rounded-3xl p-4">
+              <div id="kpiActiveLbl" class="text-xs text-gray-500 font-extrabold">مفعّلين الآن</div>
+              <div id="kpiActive" class="text-2xl font-extrabold mt-1">—</div>
+            </div>
+            <div class="bg-gray-50 border rounded-3xl p-4">
+              <div id="kpiPendingLbl" class="text-xs text-gray-500 font-extrabold">بانتظار الوصل</div>
+              <div id="kpiPending" class="text-2xl font-extrabold mt-1">—</div>
+            </div>
+          </div>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th id="thDriver">السائق</th>
+                  <th id="thPhone">الهاتف</th>
+                  <th id="thCIN">CIN</th>
+                  <th id="thCityArea">المدينة/الحي</th>
+                  <th id="thVehicle">المركبة</th>
+                  <th id="thStatus">الحالة</th>
+                  <th id="thSub">الاشتراك</th>
+                  <th id="thActions">أوامر</th>
+                </tr>
+              </thead>
+              <tbody id="adminRows"></tbody>
+            </table>
+          </div>
+
+          <p id="adminNote" class="text-[11px] text-gray-500 mt-3">
+            * زر "تفعيل 8 أيام" كيدير <span class="mono">subExpiresAt = الآن + 8 أيام</span> وكيرجع كيبان فكل المتصفحات.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- NAV -->
+  <nav class="bg-white/90 backdrop-blur shadow-sm sticky top-0 z-50">
+    <div class="container mx-auto px-4 py-4 flex justify-between items-center gap-3">
+      <div class="flex items-center gap-3">
+        <h1 class="text-2xl font-black text-red-600 tracking-tighter select-none">
+          TAWSILA<span class="text-green-600">.ma</span>
+        </h1>
+        <span id="apiPill" class="hidden sm:inline-block text-[11px] px-3 py-1 rounded-full border bg-gray-50 text-gray-600">
+          API: —
+        </span>
+      </div>
+
+      <div class="flex items-center gap-2">
+        <!-- Language -->
+        <select id="langSelect" class="px-3 py-2 rounded-full border font-extrabold text-xs bg-white hover:bg-gray-50">
+          <option value="ar">العربية</option>
+          <option value="fr">Français</option>
+          <option value="en">English</option>
+        </select>
+
+        <a id="navInstagram" href="#" target="_blank" class="w-9 h-9 rounded-full border flex items-center justify-center hover:bg-gray-50" title="Instagram">
+          <i class="fab fa-instagram"></i>
+        </a>
+        <a id="navFacebook" href="#" target="_blank" class="w-9 h-9 rounded-full border flex items-center justify-center hover:bg-gray-50" title="Facebook">
+          <i class="fab fa-facebook"></i>
+        </a>
+
+        <button id="adminBtn" class="px-4 py-2 rounded-full border font-extrabold text-xs hover:bg-gray-50" title="Admin">
+          <i class="fas fa-shield-halved ml-1"></i> Admin
+        </button>
+
+        <a href="#register" id="goRegister"
+           class="bg-red-600 text-white px-5 py-2 rounded-full font-extrabold text-sm hover:bg-red-700 transition">
+          سجل سائق
+        </a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <header class="hero-bg text-white py-12 px-4 text-center">
+    <h2 id="heroTitle" class="text-3xl md:text-5xl font-black mb-3">لقـي سائق قريب منك فثواني 🚗🏍️</h2>
+    <p id="heroSub" class="text-lg opacity-90 mb-6">تواصل مباشرة واتساب أو اتصال — الأداء Cash فقط.</p>
+
+    <div class="max-w-4xl mx-auto grid sm:grid-cols-3 gap-3 text-sm">
+      <div class="bg-white/10 border border-white/15 rounded-2xl p-4">
+        <div id="feat1T" class="font-black mb-1"><i class="fas fa-users ml-2"></i>سائقين قريبين منك</div>
+        <div id="feat1S" class="opacity-90">بحث بالمدينة والحي</div>
+      </div>
+      <div class="bg-white/10 border border-white/15 rounded-2xl p-4">
+        <div id="feat2T" class="font-black mb-1"><i class="fas fa-shield-halved ml-2"></i>تفعيل سريع</div>
+        <div id="feat2S" class="opacity-90">اشتراك 8 أيام</div>
+      </div>
+      <div class="bg-white/10 border border-white/15 rounded-2xl p-4">
+        <div id="feat3T" class="font-black mb-1"><i class="fas fa-map-location-dot ml-2"></i>خريطة</div>
+        <div id="feat3S" class="opacity-90">الموقع كيبان غير إلا فعّلو السائق</div>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN -->
+  <main class="container mx-auto px-4 py-10 grid lg:grid-cols-3 gap-8">
+
+    <!-- REGISTER (Driver) -->
+    <section id="registerSection" class="relative lg:col-span-1 bg-white p-6 rounded-3xl soft-shadow border border-gray-100 h-fit">
+      <h3 id="regTitle" class="text-xl font-black mb-2 flex items-center gap-2">
+        <i class="fas fa-id-card text-red-600"></i> تسجيل سائق جديد
+      </h3>
+
+      <div id="formNote" class="hidden mb-4 text-sm p-3 rounded-2xl border"></div>
+
+      <div id="driverLockOverlay" class="lock-overlay">
+        <div class="max-w-sm">
+          <div class="w-14 h-14 rounded-full bg-red-100 text-red-600 flex items-center justify-center mx-auto text-2xl mb-3">
+            <i class="fas fa-lock"></i>
+          </div>
+          <div id="lockTitle" class="font-black text-gray-800 text-lg mb-2">الاشتراك منتهي</div>
+          <div id="lockText" class="text-gray-600 text-sm mb-4">
+            خاصك تشحن <b>300 درهم</b> باش يتفعّل الحساب <b>8 أيام</b>.
+          </div>
+          <button id="lockRechargeBtn" class="w-full bg-gray-900 text-white py-3 rounded-xl font-black hover:opacity-90 transition">
+            <i class="fab fa-whatsapp ml-1"></i> إرسال الوصل للإدارة
+          </button>
+        </div>
+      </div>
+
+      <div class="space-y-4">
+        <div>
+          <label id="lblName" class="text-xs font-black text-gray-500">الإسم الكامل</label>
+          <input type="text" id="driverName" class="w-full border-2 border-gray-100 p-3 rounded-xl ring-focus"
+                 placeholder="مثال: محمد العلوي" autocomplete="name"/>
+          <p id="nameErr" class="hidden mt-1 text-xs text-red-600 font-black"></p>
+        </div>
+
+        <div>
+          <label id="lblVehicle" class="text-xs font-black text-gray-500">نوع المركبة</label>
+          <select id="vehicleType" class="w-full border-2 border-gray-100 p-3 rounded-xl ring-focus">
+            <option value="سيارة">سيارة</option>
+            <option value="دراجة">دراجة نارية</option>
+          </select>
+        </div>
+
+        <div>
+          <label id="lblCity" class="text-xs font-black text-gray-500">المدينة</label>
+          <input id="driverCityInput" list="citiesList"
+                 class="w-full border-2 border-gray-100 p-3 rounded-xl ring-focus"
+                 placeholder="كتب اسم المدينة..." autocomplete="off"/>
+          <p id="cityErr" class="hidden mt-1 text-xs text-red-600 font-black"></p>
+        </div>
+
+        <div class="auto-box">
+          <label id="lblArea" class="text-xs font-black text-gray-500">الحي / الشارع / الزقاق</label>
+          <input id="driverAreaInput" class="w-full border-2 border-gray-100 p-3 rounded-xl ring-focus"
+                 placeholder="مثال: المعاريف / شارع محمد الخامس..." autocomplete="off"/>
+          <div id="driverAreaList" class="auto-list"></div>
+          <p id="areaErr" class="hidden mt-1 text-xs text-red-600 font-black"></p>
+        </div>
+
+        <div>
+          <label id="lblPhone" class="text-xs font-black text-gray-500">رقم الهاتف</label>
+          <input type="tel" id="driverPhone" class="w-full border-2 border-gray-100 p-3 rounded-xl ring-focus text-left"
+                 dir="ltr" inputmode="tel" autocomplete="tel" placeholder="مثال: 0612345678"/>
+          <p id="phoneErr" class="hidden mt-1 text-xs text-red-600 font-black"></p>
+          <p id="autoFillHint" class="text-[10px] text-gray-400 mt-1">* إلا كنت مسجّل قبل، دخل غير رقم الهاتف وغادي نجيب بياناتك أوتوماتيك.</p>
+        </div>
+
+        <div>
+          <label id="lblCIN" class="text-xs font-black text-gray-500">رقم البطاقة الوطنية (CIN)</label>
+          <input type="text" id="driverCIN" class="w-full border-2 border-gray-100 p-3 rounded-xl ring-focus text-left uppercase"
+                 dir="ltr" autocomplete="off" placeholder="مثال: AB123456"/>
+          <p id="cinPrivacy" class="text-[10px] text-gray-400 mt-1">* CIN ما كيبانش للزبون، غير للإدارة/التفعيل.</p>
+          <p id="cinErr" class="hidden mt-1 text-xs text-red-600 font-black"></p>
+        </div>
+
+        <div class="bg-gray-50 p-4 rounded-2xl border border-gray-200">
+          <div class="flex items-center justify-between gap-3">
+            <div>
+              <p id="lblLocOpt" class="text-xs font-black text-gray-600">موقع السائق (اختياري)</p>
+              <p id="driverLocText" class="text-[11px] text-gray-500 mt-1">باش يبان للزبون القريب منك، فعّل موقعك.</p>
+            </div>
+            <button id="driverLocBtn" class="bg-white border px-3 py-2 rounded-xl text-xs font-black hover:bg-gray-100 transition">
+              <i class="fas fa-location-crosshairs ml-1"></i> استعمال موقعي
+            </button>
+          </div>
+        </div>
+
+        <div class="bg-gray-50 p-4 rounded-2xl border border-dashed border-gray-200">
+          <p id="lblPayMethods" class="text-xs text-gray-500 mb-2 font-black">طرق الأداء المقبولة لديك:</p>
+          <div class="flex flex-wrap gap-2 text-xs">
+            <label class="bg-white px-3 py-1 rounded-full border shadow-sm cursor-pointer select-none">
+              <input type="checkbox" class="payMethod ml-1" value="Cash" checked disabled> <span id="cashOnlyTxt">Cash فقط</span>
+            </label>
+          </div>
+        </div>
+
+        <button id="registerBtn" class="w-full bg-red-600 text-white py-4 rounded-2xl font-black text-lg hover:shadow-lg transition transform active:scale-95">
+          تسجيل وإرسال الوصل
+        </button>
+
+        <!-- Wallet -->
+        <div class="mt-2 bg-white border rounded-3xl p-4">
+          <div class="flex items-center justify-between gap-2 mb-2">
+            <div id="walletTitle" class="text-sm font-black text-gray-800">
+              <i class="fas fa-wallet ml-2 text-gray-300"></i> محفظة السائق
+            </div>
+            <span class="text-xs px-3 py-1 rounded-full border bg-gray-50 text-gray-600" id="walletPill">—</span>
+          </div>
+
+          <input id="walletPhone" class="w-full border-2 border-gray-100 p-3 rounded-xl ring-focus text-left" dir="ltr"
+                 placeholder="رقم هاتف السائق..."/>
+
+          <div class="flex gap-2 mt-2">
+            <button id="walletCheckBtn" class="w-full bg-gray-900 text-white py-3 rounded-xl font-black text-sm hover:opacity-90 transition">
+              <i class="fas fa-magnifying-glass ml-1"></i> عرض الحالة
+            </button>
+            <button id="walletSendReceiptBtn" class="w-full bg-green-600 text-white py-3 rounded-xl font-black text-sm hover:bg-green-700 transition">
+              <i class="fab fa-whatsapp ml-1"></i> إرسال الوصل
+            </button>
+          </div>
+
+          <p id="walletNote" class="text-[11px] text-gray-400 mt-2">
+            * التفعيل كيديرو Admin بعد ما يشوف الوصل فالواتساب.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- CUSTOMER -->
+    <section id="customerSection" class="lg:col-span-2">
+      <div class="flex items-center justify-between mb-6">
+        <h3 id="driversTitle" class="text-2xl font-black flex items-center gap-2">
+          <i class="fas fa-road text-gray-300"></i>
+          السائقون (جدد + قدامى)
+        </h3>
+        <span id="syncBadge" class="text-sm bg-green-100 text-green-700 px-3 py-1 rounded-full animate-pulse">مزامنة</span>
+      </div>
+
+      <!-- Filters -->
+      <div class="bg-white border border-gray-100 rounded-3xl p-4 soft-shadow mb-4">
+        <div class="grid md:grid-cols-4 gap-3">
+          <div>
+            <label id="lblFilterCity" class="text-xs font-black text-gray-500">فلتر مدينة</label>
+            <input id="filterCity" list="citiesList" class="w-full border-2 border-gray-100 p-3 rounded-xl ring-focus" placeholder="مثال: Casablanca">
+          </div>
+          <div>
+            <label id="lblFilterArea" class="text-xs font-black text-gray-500">فلتر حي</label>
+            <input id="filterArea" class="w-full border-2 border-gray-100 p-3 rounded-xl ring-focus" placeholder="المعاريف...">
+          </div>
+          <div>
+            <label id="lblFilterVeh" class="text-xs font-black text-gray-500">نوع المركبة</label>
+            <select id="filterVehicle" class="w-full border-2 border-gray-100 p-3 rounded-xl ring-focus">
+              <option value="">الكل</option>
+              <option value="سيارة">سيارة</option>
+              <option value="دراجة">دراجة</option>
+            </select>
+          </div>
+          <div>
+            <label id="lblSort" class="text-xs font-black text-gray-500">ترتيب</label>
+            <select id="sortBy" class="w-full border-2 border-gray-100 p-3 rounded-xl ring-focus">
+              <option value="new">الأحدث</option>
+              <option value="old">الأقدم</option>
+              <option value="active">المفعّلين أولا</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="flex flex-wrap items-center justify-between gap-2 mt-3">
+          <div class="flex gap-2 flex-wrap">
+            <span class="pill bg-gray-50 text-gray-700" id="countPill">—</span>
+            <span class="pill bg-gray-50 text-gray-700" id="updatedPill">—</span>
+          </div>
+          <button id="refreshBtn" class="px-4 py-2 rounded-2xl border font-black hover:bg-gray-50">
+            تحديث <i class="fas fa-rotate mr-1"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Map -->
+      <div class="bg-white border border-gray-100 rounded-3xl p-4 soft-shadow mb-4">
+        <div class="flex items-center justify-between gap-2 mb-3">
+          <div>
+            <div id="mapTitle" class="font-black">الخريطة</div>
+            <div id="mapSub" class="text-xs text-gray-500">كيبان موقع السائق إذا فعّلو (اختياري)</div>
+          </div>
+          <div class="flex gap-2">
+            <button id="myLocBtn" class="px-4 py-2 rounded-2xl border font-black hover:bg-gray-50">
+              موقعي <i class="fas fa-location-crosshairs mr-1"></i>
+            </button>
+            <button id="mapFullBtn" class="px-4 py-2 rounded-2xl border font-black hover:bg-gray-50">
+              تكبير <i class="fas fa-expand mr-1"></i>
+            </button>
+          </div>
+        </div>
+
+        <div id="mapWrap" class="map-wrap">
+          <div class="map-full-topbar">
+            <div id="mapFsTitle" class="font-black">الخريطة (Fullscreen)</div>
+            <button id="mapExitBtn" class="px-4 py-2 rounded-2xl border font-black hover:bg-gray-50">
+              خروج <i class="fas fa-compress mr-1"></i>
+            </button>
+          </div>
+
+          <div class="map-fab">
+            <button id="mapClearBtn" class="fab-btn secondary">Clear</button>
+            <button id="mapExitFabBtn" class="fab-btn hidden">Exit</button>
+          </div>
+
+          <div id="map"></div>
+        </div>
+      </div>
+
+      <!-- Feed -->
+      <div id="driversFeed" class="grid md:grid-cols-2 gap-4"></div>
+    </section>
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="border-t bg-white">
+    <div class="container mx-auto px-4 py-6 flex flex-col sm:flex-row items-center justify-between gap-3">
+      <div id="footerCopy" class="text-sm text-gray-500">© TAWSILA.ma</div>
+      <div class="flex gap-2">
+        <a id="footWa" class="px-4 py-2 rounded-2xl border font-black hover:bg-gray-50" target="_blank">
+          WhatsApp <i class="fab fa-whatsapp mr-1"></i>
+        </a>
+        <button id="switchRoleBtn" class="px-4 py-2 rounded-2xl border font-black hover:bg-gray-50">
+          تبديل الدور <i class="fas fa-shuffle mr-1"></i>
+        </button>
+      </div>
+    </div>
+  </footer>
+
+  <datalist id="citiesList"></datalist>
+
+  <script>
+    /********************
+     * ✅ SETTINGS (بدّل غير هادو)
+     ********************/
+    const REMOTE_API_URL = "https://script.google.com/macros/s/AKfycbzxOQEMtzhcsqeLNTTn63-m_tprVpHsTwVdVQAKKfR_fzlRn2sgVpa4_52O4LaLS_Bd/exec"; // <-- رابطك /exec
+
+    const ADMIN_PASSWORD = "Simo.simo";             // اختياري
+    const PLATFORM_WHATSAPP_NUMBER = "212617139424";// اختياري (رقم الإدارة)
+
+    const SUB_PRICE_DH = 300;
+    const SUB_DAYS = 8;                 // ✅ 8 أيام بدل 7
+    const SUB_MS = SUB_DAYS * 24 * 60 * 60 * 1000;
+
+    const SOCIAL_LINKS = {
+      whatsapp: "https://wa.me/" + PLATFORM_WHATSAPP_NUMBER,
+      facebook: "https://www.facebook.com/share/1APLprEUQc/",
+      instagram: "https://www.instagram.com/tawsila.ma5?igsh=OWVqbDVtdHMzbHA="
+    };
+
+    /********************
+     * Local Keys
+     ********************/
+    const STORAGE_KEY = "tawsila_remote_cache_v1";
+    const ROLE_KEY    = "tawsila_role_v1";
+    const ADMIN_AUTH  = "tawsila_admin_authed_v1";
+    const LANG_KEY    = "tawsila_lang_v1";
+    const LAST_DRIVER_PHONE = "tawsila_last_driver_phone_v1";
+
+    /********************
+     * Helpers
+     ********************/
+    const $ = (id)=>document.getElementById(id);
+
+    function nowMs(){ return Date.now(); }
+    function fmtDate(ms){
+      if(!ms) return "—";
+      try{
+        const d = new Date(Number(ms));
+        const loc = state.lang === "ar" ? "ar-MA" : (state.lang === "fr" ? "fr-MA" : "en-GB");
+        return d.toLocaleString(loc);
+      }catch(_){ return String(ms); }
+    }
+    function escapeHtml(s){
+      return String(s??"").replace(/[&<>"']/g, m=>({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;" }[m]));
+    }
+    function normalizePhone(p){
+      return String(p||"").replace(/\s+/g,"").trim();
+    }
+
+    /********************
+     * i18n
+     ********************/
+    const I18N = {
+      ar: {
+        langName: "العربية",
+        roleTitle: "مرحبا 👋",
+        roleSub: 'اختار: واش نتا <b>سائق</b> ولا <b>زبون</b>؟',
+        roleHint: '* تقدر تبدّل الدور من زر "تبديل الدور" فالفوتر.',
+        iAmCustomer: "أنا زبون",
+        iAmDriver: "أنا سائق",
+
+        adminTitle: "لوحة الإدارة",
+        adminSub: "كتشوف السائقين من أي متصفح + تفعيل {days} أيام",
+        close: "إغلاق",
+        loginTitle: "تسجيل الدخول",
+        loginSub: "دخل كلمة السر ديال Admin",
+        passwordPH: "Password",
+        loginBtn: "دخول",
+        tab_all: "الكل",
+        tab_pending: "بانتظار الوصل",
+        tab_active: "مفعّلين",
+        tab_expired: "منتهيين",
+        refresh: "تحديث",
+        logout: "خروج",
+        kpiTotalLbl: "إجمالي السائقين",
+        kpiActiveLbl: "مفعّلين الآن",
+        kpiPendingLbl: "بانتظار الوصل",
+        thDriver: "السائق",
+        thPhone: "الهاتف",
+        thCIN: "CIN",
+        thCityArea: "المدينة/الحي",
+        thVehicle: "المركبة",
+        thStatus: "الحالة",
+        thSub: "الاشتراك",
+        thActions: "أوامر",
+        adminNote: '* زر "تفعيل {days} أيام" كيدير <span class="mono">subExpiresAt = الآن + {days} أيام</span> وكيرجع كيبان فكل المتصفحات.',
+
+        goRegister: "سجل سائق",
+
+        heroTitle: "لقـي سائق قريب منك فثواني 🚗🏍️",
+        heroSub: "تواصل مباشرة واتساب أو اتصال — الأداء Cash فقط.",
+        feat1T: '<i class="fas fa-users ml-2"></i>سائقين قريبين منك',
+        feat1S: "بحث بالمدينة والحي",
+        feat2T: '<i class="fas fa-shield-halved ml-2"></i>تفعيل سريع',
+        feat2S: "اشتراك {days} أيام",
+        feat3T: '<i class="fas fa-map-location-dot ml-2"></i>خريطة',
+        feat3S: "الموقع كيبان غير إلا فعّلو السائق",
+
+        regTitle: '<i class="fas fa-id-card text-red-600"></i> تسجيل سائق جديد',
+        lockTitle: "الاشتراك منتهي",
+        lockText: "خاصك تشحن <b>{price} درهم</b> باش يتفعّل الحساب <b>{days} أيام</b>.",
+        lockBtn: '<i class="fab fa-whatsapp ml-1"></i> إرسال الوصل للإدارة',
+
+        lblName: "الإسم الكامل",
+        phName: "مثال: محمد العلوي",
+        lblVehicle: "نوع المركبة",
+        lblCity: "المدينة",
+        phCity: "كتب اسم المدينة...",
+        lblArea: "الحي / الشارع / الزقاق",
+        phArea: "مثال: المعاريف / شارع محمد الخامس...",
+        lblPhone: "رقم الهاتف",
+        phPhone: "مثال: 0612345678",
+        autoFillHint: "* إلا كنت مسجّل قبل، دخل غير رقم الهاتف وغادي نجيب بياناتك أوتوماتيك.",
+        lblCIN: "رقم البطاقة الوطنية (CIN)",
+        phCIN: "مثال: AB123456",
+        cinPrivacy: "* CIN ما كيبانش للزبون، غير للإدارة/التفعيل.",
+        lblLocOpt: "موقع السائق (اختياري)",
+        locHelp: "باش يبان للزبون القريب منك، فعّل موقعك.",
+        useMyLoc: '<i class="fas fa-location-crosshairs ml-1"></i> استعمال موقعي',
+        lblPayMethods: "طرق الأداء المقبولة لديك:",
+        cashOnlyTxt: "Cash فقط",
+        registerBtn: "تسجيل وإرسال الوصل",
+
+        walletTitle: '<i class="fas fa-wallet ml-2 text-gray-300"></i> محفظة السائق',
+        walletPH: "رقم هاتف السائق...",
+        walletCheck: '<i class="fas fa-magnifying-glass ml-1"></i> عرض الحالة',
+        walletSend: '<i class="fab fa-whatsapp ml-1"></i> إرسال الوصل',
+        walletNote: "* التفعيل كيديرو Admin بعد ما يشوف الوصل فالواتساب.",
+
+        driversTitle: 'السائقون (جدد + قدامى)',
+        sync: "مزامنة",
+        lblFilterCity: "فلتر مدينة",
+        phFilterCity: "مثال: Casablanca",
+        lblFilterArea: "فلتر حي",
+        phFilterArea: "المعاريف...",
+        lblFilterVeh: "نوع المركبة",
+        optAll: "الكل",
+        optCar: "سيارة",
+        optBike: "دراجة",
+        lblSort: "ترتيب",
+        sortNew: "الأحدث",
+        sortOld: "الأقدم",
+        sortActive: "المفعّلين أولا",
+        mapTitle: "الخريطة",
+        mapSub: "كيبان موقع السائق إذا فعّلو (اختياري)",
+        myLoc: 'موقعي <i class="fas fa-location-crosshairs mr-1"></i>',
+        zoom: 'تكبير <i class="fas fa-expand mr-1"></i>',
+        mapFsTitle: "الخريطة (Fullscreen)",
+        exit: 'خروج <i class="fas fa-compress mr-1"></i>',
+        clear: "Clear",
+        exitBtn: "Exit",
+
+        countPill: "عدد السائقين: {n}",
+        updatedPill: "آخر تحديث: {d}",
+
+        badge_active: "مفعّل",
+        badge_pending: "بانتظار الوصل",
+        badge_expired: "منتهي",
+        vehicle: "المركبة",
+        remaining: "متبقي",
+        ended: "منتهي",
+
+        noDrivers: "ما كاين حتى سائق حاليا. جرّب \"تحديث\" ولا سجّل أول سائق.",
+        showOnMap: "Show on map",
+        call: "Call",
+        whatsapp: "WhatsApp",
+
+        msgRoleCustomer: "مرحبا زبون 👋",
+        msgRoleDriver: "مرحبا سائق 👋",
+        apiOk: "API: OK",
+        apiErr: "API: ERR",
+        apiErrSet: "API: ERR (set URL)",
+
+        errName: "دخل اسم صحيح",
+        errCity: "دخل المدينة",
+        errArea: "دخل الحي/الشارع",
+        errPhone: "دخل رقم صحيح",
+        errCIN: "دخل CIN صحيح",
+
+        toastNoLoc: "ما قدرناش نجيبوا الموقع. فعل GPS.",
+        toastNoLocDriver: "هذا السائق ما فعّلش الموقع.",
+        walletNotFound: "ما لقايناهش",
+        walletNotFoundMsg: "ما لقايناش هاد السائق. تأكد من الرقم.",
+        walletNeedPhone: "دخل رقم الهاتف.",
+
+        regOk: "تسجلتي ✅ دابا غادي يتحل WhatsApp باش ترسل الوصل للإدارة.",
+        regErr: "مشكل فالتسجيل: ",
+        walletErr: "مشكل فالمحفظة: ",
+
+        adminPassWrong: "كلمة السر غير صحيحة",
+        adminActivated: "تم التفعيل {days} أيام ✅",
+        adminPendingOk: "تمت إعادة الحالة Pending ✅",
+        adminDeleted: "تحذف ✅",
+        adminErrActivate: "خطأ فالتفعيل: ",
+        adminErrGeneric: "خطأ: ",
+        adminErrDelete: "خطأ فالحذف: ",
+        confirmDelete: "متأكد باغي تحذف هاد السائق؟",
+
+        loadedAuto: "لقينا حسابك ✅ جبدنا بياناتك أوتوماتيك.",
+        apiFetchNote: "ملاحظة: ما قدرناش نجبدو البيانات من Google Sheets. تأكد من REMOTE_API_URL.",
+        myLocation: "موقعي"
+      },
+
+      fr: {
+        langName: "Français",
+        roleTitle: "Bienvenue 👋",
+        roleSub: 'Choisis : tu es <b>Chauffeur</b> ou <b>Client</b> ?',
+        roleHint: '* Tu peux changer de rôle via le bouton "Changer de rôle" en bas.',
+        iAmCustomer: "Je suis client",
+        iAmDriver: "Je suis chauffeur",
+
+        adminTitle: "Panneau d’administration",
+        adminSub: "Voir les chauffeurs depuis n’importe quel navigateur + activation {days} jours",
+        close: "Fermer",
+        loginTitle: "Connexion",
+        loginSub: "Entre le mot de passe Admin",
+        passwordPH: "Mot de passe",
+        loginBtn: "Entrer",
+        tab_all: "Tous",
+        tab_pending: "En attente du reçu",
+        tab_active: "Actifs",
+        tab_expired: "Expirés",
+        refresh: "Rafraîchir",
+        logout: "Déconnexion",
+        kpiTotalLbl: "Total chauffeurs",
+        kpiActiveLbl: "Actifs الآن",
+        kpiPendingLbl: "En attente",
+        thDriver: "Chauffeur",
+        thPhone: "Téléphone",
+        thCIN: "CIN",
+        thCityArea: "Ville/Quartier",
+        thVehicle: "Véhicule",
+        thStatus: "Statut",
+        thSub: "Abonnement",
+        thActions: "Actions",
+        adminNote: '* Le bouton "Activer {days} jours" met <span class="mono">subExpiresAt = الآن + {days} jours</span> et s’affiche partout.',
+
+        goRegister: "Inscrire chauffeur",
+
+        heroTitle: "Trouve un chauffeur près de toi en quelques secondes 🚗🏍️",
+        heroSub: "Contact direct WhatsApp أو appel — Paiement Cash فقط.",
+        feat1T: '<i class="fas fa-users ml-2"></i>Chauffeurs près de toi',
+        feat1S: "Recherche par ville et quartier",
+        feat2T: '<i class="fas fa-shield-halved ml-2"></i>Activation rapide',
+        feat2S: "Abonnement {days} jours",
+        feat3T: '<i class="fas fa-map-location-dot ml-2"></i>Carte',
+        feat3S: "La position s’affiche فقط si le chauffeur l’active",
+
+        regTitle: '<i class="fas fa-id-card text-red-600"></i> Inscription chauffeur',
+        lockTitle: "Abonnement expiré",
+        lockText: "Recharge <b>{price} DH</b> pour activer <b>{days} jours</b>.",
+        lockBtn: '<i class="fab fa-whatsapp ml-1"></i> Envoyer le reçu à l’admin',
+
+        lblName: "Nom complet",
+        phName: "Ex : Mohamed...",
+        lblVehicle: "Type de véhicule",
+        lblCity: "Ville",
+        phCity: "Écris la ville...",
+        lblArea: "Quartier / rue",
+        phArea: "Ex : Maarif / ...",
+        lblPhone: "Téléphone",
+        phPhone: "Ex : 0612345678",
+        autoFillHint: "* Si tu es déjà inscrit, entre فقط ton numéro et on récupère tes infos.",
+        lblCIN: "CIN",
+        phCIN: "Ex : AB123456",
+        cinPrivacy: "* Le CIN n’est pas visible pour le client (admin فقط).",
+        lblLocOpt: "Localisation (optionnel)",
+        locHelp: "Active ta position pour apparaître près des clients.",
+        useMyLoc: '<i class="fas fa-location-crosshairs ml-1"></i> Utiliser ma position',
+        lblPayMethods: "Moyens de paiement:",
+        cashOnlyTxt: "Cash فقط",
+        registerBtn: "S’inscrire & envoyer le reçu",
+
+        walletTitle: '<i class="fas fa-wallet ml-2 text-gray-300"></i> Portefeuille chauffeur',
+        walletPH: "Numéro du chauffeur...",
+        walletCheck: '<i class="fas fa-magnifying-glass ml-1"></i> Voir statut',
+        walletSend: '<i class="fab fa-whatsapp ml-1"></i> Envoyer reçu',
+        walletNote: "* L’admin active après vérification du reçu.",
+
+        driversTitle: "Chauffeurs (nouveaux + anciens)",
+        sync: "Sync",
+        lblFilterCity: "Filtre ville",
+        phFilterCity: "Ex : Casablanca",
+        lblFilterArea: "Filtre quartier",
+        phFilterArea: "Maarif...",
+        lblFilterVeh: "Véhicule",
+        optAll: "Tous",
+        optCar: "Voiture",
+        optBike: "Moto",
+        lblSort: "Tri",
+        sortNew: "Plus récent",
+        sortOld: "Plus ancien",
+        sortActive: "Actifs d’abord",
+        mapTitle: "Carte",
+        mapSub: "Position affichée si le chauffeur l’active",
+        myLoc: 'Ma position <i class="fas fa-location-crosshairs mr-1"></i>',
+        zoom: 'Agrandir <i class="fas fa-expand mr-1"></i>',
+        mapFsTitle: "Carte (plein écran)",
+        exit: 'Quitter <i class="fas fa-compress mr-1"></i>',
+        clear: "Clear",
+        exitBtn: "Exit",
+
+        countPill: "Chauffeurs: {n}",
+        updatedPill: "Dernière maj: {d}",
+
+        badge_active: "Actif",
+        badge_pending: "En attente",
+        badge_expired: "Expiré",
+        remaining: "Restant",
+        ended: "Expiré",
+
+        noDrivers: "Aucun chauffeur pour le moment. Essaie \"Rafraîchir\".",
+        msgRoleCustomer: "Bienvenue client 👋",
+        msgRoleDriver: "Bienvenue chauffeur 👋",
+        apiOk: "API: OK",
+        apiErr: "API: ERR",
+        apiErrSet: "API: ERR (set URL)",
+
+        errName: "Nom invalide",
+        errCity: "Ville requise",
+        errArea: "Quartier requis",
+        errPhone: "Téléphone invalide",
+        errCIN: "CIN invalide",
+
+        toastNoLoc: "Impossible d’obtenir la position. Active GPS.",
+        toastNoLocDriver: "Ce chauffeur n’a pas activé la position.",
+        walletNotFound: "Introuvable",
+        walletNotFoundMsg: "Chauffeur introuvable. Vérifie le numéro.",
+        walletNeedPhone: "Entre le numéro.",
+
+        regOk: "Inscription OK ✅ WhatsApp va s’ouvrir pour envoyer le reçu.",
+        regErr: "Erreur d’inscription: ",
+        walletErr: "Erreur portefeuille: ",
+
+        adminPassWrong: "Mot de passe incorrect",
+        adminActivated: "Activation {days} jours ✅",
+        adminPendingOk: "Statut remis en attente ✅",
+        adminDeleted: "Supprimé ✅",
+        adminErrActivate: "Erreur d’activation: ",
+        adminErrGeneric: "Erreur: ",
+        adminErrDelete: "Erreur de suppression: ",
+        confirmDelete: "Confirmer la suppression ?",
+
+        loadedAuto: "Compte trouvé ✅ Infos chargées automatiquement.",
+        apiFetchNote: "Note: impossible de charger Google Sheets. Vérifie REMOTE_API_URL.",
+        myLocation: "Ma position"
+      },
+
+      en: {
+        langName: "English",
+        roleTitle: "Welcome 👋",
+        roleSub: "Choose: are you a <b>Driver</b> or a <b>Customer</b>?",
+        roleHint: '* You can switch role from the "Switch role" button in the footer.',
+        iAmCustomer: "I’m a customer",
+        iAmDriver: "I’m a driver",
+
+        adminTitle: "Admin Panel",
+        adminSub: "View drivers from any browser + activate {days} days",
+        close: "Close",
+        loginTitle: "Login",
+        loginSub: "Enter admin password",
+        passwordPH: "Password",
+        loginBtn: "Login",
+        tab_all: "All",
+        tab_pending: "Pending receipt",
+        tab_active: "Active",
+        tab_expired: "Expired",
+        refresh: "Refresh",
+        logout: "Logout",
+        kpiTotalLbl: "Total drivers",
+        kpiActiveLbl: "Active now",
+        kpiPendingLbl: "Pending",
+        thDriver: "Driver",
+        thPhone: "Phone",
+        thCIN: "CIN",
+        thCityArea: "City/Area",
+        thVehicle: "Vehicle",
+        thStatus: "Status",
+        thSub: "Subscription",
+        thActions: "Actions",
+        adminNote: '* "Activate {days} days" sets <span class="mono">subExpiresAt = now + {days} days</span> and syncs everywhere.',
+
+        goRegister: "Register driver",
+
+        heroTitle: "Find a nearby driver in seconds 🚗🏍️",
+        heroSub: "Direct WhatsApp or call — Cash only.",
+        feat1T: '<i class="fas fa-users ml-2"></i>Nearby drivers',
+        feat1S: "Search by city and area",
+        feat2T: '<i class="fas fa-shield-halved ml-2"></i>Fast activation',
+        feat2S: "{days}-day subscription",
+        feat3T: '<i class="fas fa-map-location-dot ml-2"></i>Map',
+        feat3S: "Location shows only if the driver enables it",
+
+        regTitle: '<i class="fas fa-id-card text-red-600"></i> Driver registration',
+        lockTitle: "Subscription expired",
+        lockText: "Pay <b>{price} DH</b> to activate for <b>{days} days</b>.",
+        lockBtn: '<i class="fab fa-whatsapp ml-1"></i> Send receipt to admin',
+
+        lblName: "Full name",
+        phName: "Example: ...",
+        lblVehicle: "Vehicle type",
+        lblCity: "City",
+        phCity: "Type your city...",
+        lblArea: "Area / street",
+        phArea: "Example: ...",
+        lblPhone: "Phone",
+        phPhone: "Example: 0612345678",
+        autoFillHint: "* If you registered before, enter your phone and we’ll auto-fill your data.",
+        lblCIN: "CIN",
+        phCIN: "Example: AB123456",
+        cinPrivacy: "* CIN is not visible to customers (admin only).",
+        lblLocOpt: "Driver location (optional)",
+        locHelp: "Enable location to appear nearby.",
+        useMyLoc: '<i class="fas fa-location-crosshairs ml-1"></i> Use my location',
+        lblPayMethods: "Payment methods:",
+        cashOnlyTxt: "Cash only",
+        registerBtn: "Register & send receipt",
+
+        walletTitle: '<i class="fas fa-wallet ml-2 text-gray-300"></i> Driver wallet',
+        walletPH: "Driver phone...",
+        walletCheck: '<i class="fas fa-magnifying-glass ml-1"></i> Check status',
+        walletSend: '<i class="fab fa-whatsapp ml-1"></i> Send receipt',
+        walletNote: "* Admin activates after reviewing the receipt.",
+
+        driversTitle: "Drivers (new + old)",
+        sync: "Sync",
+        lblFilterCity: "City filter",
+        phFilterCity: "Example: Casablanca",
+        lblFilterArea: "Area filter",
+        phFilterArea: "Maarif...",
+        lblFilterVeh: "Vehicle",
+        optAll: "All",
+        optCar: "Car",
+        optBike: "Bike",
+        lblSort: "Sort",
+        sortNew: "Newest",
+        sortOld: "Oldest",
+        sortActive: "Active first",
+        mapTitle: "Map",
+        mapSub: "Shows driver location if enabled",
+        myLoc: 'My location <i class="fas fa-location-crosshairs mr-1"></i>',
+        zoom: 'Zoom <i class="fas fa-expand mr-1"></i>',
+        mapFsTitle: "Map (Fullscreen)",
+        exit: 'Exit <i class="fas fa-compress mr-1"></i>',
+        clear: "Clear",
+        exitBtn: "Exit",
+
+        countPill: "Drivers: {n}",
+        updatedPill: "Last update: {d}",
+
+        badge_active: "Active",
+        badge_pending: "Pending",
+        badge_expired: "Expired",
+        remaining: "Remaining",
+        ended: "Expired",
+
+        noDrivers: 'No drivers yet. Try "Refresh".',
+        msgRoleCustomer: "Welcome customer 👋",
+        msgRoleDriver: "Welcome driver 👋",
+        apiOk: "API: OK",
+        apiErr: "API: ERR",
+        apiErrSet: "API: ERR (set URL)",
+
+        errName: "Enter a valid name",
+        errCity: "Enter city",
+        errArea: "Enter area",
+        errPhone: "Enter valid phone",
+        errCIN: "Enter valid CIN",
+
+        toastNoLoc: "Couldn't get location. Enable GPS.",
+        toastNoLocDriver: "This driver didn't enable location.",
+        walletNotFound: "Not found",
+        walletNotFoundMsg: "Driver not found. Check the number.",
+        walletNeedPhone: "Enter phone number.",
+
+        regOk: "Registered ✅ WhatsApp will open to send the receipt.",
+        regErr: "Registration error: ",
+        walletErr: "Wallet error: ",
+
+        adminPassWrong: "Wrong password",
+        adminActivated: "Activated {days} days ✅",
+        adminPendingOk: "Set back to pending ✅",
+        adminDeleted: "Deleted ✅",
+        adminErrActivate: "Activation error: ",
+        adminErrGeneric: "Error: ",
+        adminErrDelete: "Delete error: ",
+        confirmDelete: "Are you sure you want to delete this driver?",
+
+        loadedAuto: "Account found ✅ Auto-filled your data.",
+        apiFetchNote: "Note: couldn't load Google Sheets. Check REMOTE_API_URL.",
+        myLocation: "My location"
+      }
+    };
+
+    function t(key, vars={}){
+      const pack = I18N[state.lang] || I18N.ar;
+      let s = (pack && pack[key]) || (I18N.ar && I18N.ar[key]) || key;
+      s = String(s).replace(/\{(\w+)\}/g, (_,k)=> (vars[k] !== undefined ? String(vars[k]) : ""));
+      return s;
+    }
+
+    function applyLanguage(lang){
+      state.lang = (lang === "fr" || lang === "en" || lang === "ar") ? lang : "ar";
+      localStorage.setItem(LANG_KEY, state.lang);
+
+      // html lang/dir
+      const html = document.documentElement;
+      html.lang = state.lang;
+      html.dir  = (state.lang === "ar") ? "rtl" : "ltr";
+
+      // role modal
+      $("roleTitle").textContent = t("roleTitle");
+      $("roleSub").innerHTML = t("roleSub");
+      $("roleHint").textContent = t("roleHint");
+      $("pickCustomer").innerHTML = `<i class="fas fa-person-walking ml-2"></i> ${t("iAmCustomer")}`;
+      $("pickDriver").innerHTML   = `<i class="fas fa-car-side ml-2"></i> ${t("iAmDriver")}`;
+
+      // admin
+      $("adminTitle").textContent = t("adminTitle");
+      $("adminSub").textContent = t("adminSub", { days: SUB_DAYS });
+      $("adminClose").innerHTML = `${t("close")} <i class="fas fa-xmark mr-1"></i>`;
+      $("adminLoginTitle").textContent = t("loginTitle");
+      $("adminLoginSub").textContent = t("loginSub");
+      $("adminPass").setAttribute("placeholder", t("passwordPH"));
+      $("adminLoginBtn").textContent = t("loginBtn");
+      $("adminRefreshBtn").innerHTML = `${t("refresh")} <i class="fas fa-rotate mr-1"></i>`;
+      $("adminLogoutBtn").innerHTML  = `${t("logout")} <i class="fas fa-right-from-bracket mr-1"></i>`;
+      $("kpiTotalLbl").textContent = t("kpiTotalLbl");
+      $("kpiActiveLbl").textContent = t("kpiActiveLbl");
+      $("kpiPendingLbl").textContent = t("kpiPendingLbl");
+      $("thDriver").textContent = t("thDriver");
+      $("thPhone").textContent = t("thPhone");
+      $("thCIN").textContent = t("thCIN");
+      $("thCityArea").textContent = t("thCityArea");
+      $("thVehicle").textContent = t("thVehicle");
+      $("thStatus").textContent = t("thStatus");
+      $("thSub").textContent = t("thSub");
+      $("thActions").textContent = t("thActions");
+      $("adminNote").innerHTML = t("adminNote", { days: SUB_DAYS });
+
+      // admin tabs
+      document.querySelectorAll(".adminTab").forEach(btn=>{
+        const tab = btn.getAttribute("data-tab");
+        if(tab === "all") btn.textContent = t("tab_all");
+        if(tab === "pending") btn.textContent = t("tab_pending");
+        if(tab === "active") btn.textContent = t("tab_active");
+        if(tab === "expired") btn.textContent = t("tab_expired");
+      });
+
+      // nav
+      $("goRegister").textContent = t("goRegister");
+
+      // hero
+      $("heroTitle").textContent = t("heroTitle");
+      $("heroSub").textContent   = t("heroSub");
+      $("feat1T").innerHTML = t("feat1T");
+      $("feat1S").textContent = t("feat1S");
+      $("feat2T").innerHTML = t("feat2T");
+      $("feat2S").textContent = t("feat2S", { days: SUB_DAYS });
+      $("feat3T").innerHTML = t("feat3T");
+      $("feat3S").textContent = t("feat3S");
+
+      // register section
+      $("regTitle").innerHTML = t("regTitle");
+      $("lockTitle").textContent = t("lockTitle");
+      $("lockText").innerHTML = t("lockText", { price: SUB_PRICE_DH, days: SUB_DAYS });
+      $("lockRechargeBtn").innerHTML = t("lockBtn");
+
+      $("lblName").textContent = t("lblName");
+      $("driverName").setAttribute("placeholder", t("phName"));
+      $("lblVehicle").textContent = t("lblVehicle");
+      $("lblCity").textContent = t("lblCity");
+      $("driverCityInput").setAttribute("placeholder", t("phCity"));
+      $("lblArea").textContent = t("lblArea");
+      $("driverAreaInput").setAttribute("placeholder", t("phArea"));
+      $("lblPhone").textContent = t("lblPhone");
+      $("driverPhone").setAttribute("placeholder", t("phPhone"));
+      $("autoFillHint").textContent = t("autoFillHint");
+      $("lblCIN").textContent = t("lblCIN");
+      $("driverCIN").setAttribute("placeholder", t("phCIN"));
+      $("cinPrivacy").textContent = t("cinPrivacy");
+      $("lblLocOpt").textContent = t("lblLocOpt");
+      if(!$("driverLocText").textContent || $("driverLocText").textContent.includes("باش")) {
+        $("driverLocText").textContent = t("locHelp");
+      }
+      $("driverLocBtn").innerHTML = t("useMyLoc");
+      $("lblPayMethods").textContent = t("lblPayMethods");
+      $("cashOnlyTxt").textContent = t("cashOnlyTxt");
+      $("registerBtn").textContent = t("registerBtn");
+
+      // wallet
+      $("walletTitle").innerHTML = t("walletTitle");
+      $("walletPhone").setAttribute("placeholder", t("walletPH"));
+      $("walletCheckBtn").innerHTML = t("walletCheck");
+      $("walletSendReceiptBtn").innerHTML = t("walletSend");
+      $("walletNote").textContent = t("walletNote");
+
+      // customer
+      $("driversTitle").textContent = t("driversTitle");
+      $("syncBadge").textContent = t("sync");
+      $("lblFilterCity").textContent = t("lblFilterCity");
+      $("filterCity").setAttribute("placeholder", t("phFilterCity"));
+      $("lblFilterArea").textContent = t("lblFilterArea");
+      $("filterArea").setAttribute("placeholder", t("phFilterArea"));
+      $("lblFilterVeh").textContent = t("lblFilterVeh");
+      // vehicle options (keep values same as existing Arabic values to not break data)
+      $("filterVehicle").options[0].text = t("optAll");
+      $("filterVehicle").options[1].text = t("optCar");
+      $("filterVehicle").options[2].text = t("optBike");
+
+      $("lblSort").textContent = t("lblSort");
+      $("sortBy").options[0].text = t("sortNew");
+      $("sortBy").options[1].text = t("sortOld");
+      $("sortBy").options[2].text = t("sortActive");
+
+      $("refreshBtn").innerHTML = `${t("refresh")} <i class="fas fa-rotate mr-1"></i>`;
+
+      $("mapTitle").textContent = t("mapTitle");
+      $("mapSub").textContent = t("mapSub");
+      $("myLocBtn").innerHTML = t("myLoc");
+      $("mapFullBtn").innerHTML = t("zoom");
+      $("mapFsTitle").textContent = t("mapFsTitle");
+      $("mapExitBtn").innerHTML = t("exit");
+      $("mapClearBtn").textContent = t("clear");
+      $("mapExitFabBtn").textContent = t("exitBtn");
+
+      // footer
+      $("switchRoleBtn").innerHTML = (state.lang==="ar")
+        ? `تبديل الدور <i class="fas fa-shuffle mr-1"></i>`
+        : `Switch role <i class="fas fa-shuffle mr-1"></i>`;
+
+      // re-render dynamic UI
+      renderFeed();
+      renderAdminIfOpen();
+      updatePills();
+      updateApiPillVisibility();
+    }
+
+    /********************
+     * Status badges (translated)
+     ********************/
+    function badge(status){
+      if(status === "active") return `<span class="pill bg-green-100 text-green-700 border-green-200">${escapeHtml(t("badge_active"))}</span>`;
+      if(status === "pending") return `<span class="pill bg-yellow-100 text-yellow-800 border-yellow-200">${escapeHtml(t("badge_pending"))}</span>`;
+      if(status === "expired") return `<span class="pill bg-red-100 text-red-700 border-red-200">${escapeHtml(t("badge_expired"))}</span>`;
+      return `<span class="pill bg-gray-100 text-gray-700">—</span>`;
+    }
+
+    /********************
+     * Base64URL (Unicode safe)
+     ********************/
+    function base64UrlEncodeUnicode(str){
+      const utf8 = new TextEncoder().encode(str);
+      let binary = "";
+      utf8.forEach(b => binary += String.fromCharCode(b));
+      const b64 = btoa(binary);
+      return b64.replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");
+    }
+
+    /********************
+     * JSONP request (for GitHub Pages CORS)
+     ********************/
+    function jsonp(url){
+      return new Promise((resolve, reject)=>{
+        const cbName = "cb_" + Date.now() + "_" + Math.floor(Math.random()*1e6);
+        const script = document.createElement("script");
+        const timeout = setTimeout(()=>{
+          cleanup();
+          reject(new Error("JSONP timeout"));
+        }, 15000);
+
+        function cleanup(){
+          clearTimeout(timeout);
+          if(script && script.parentNode) script.parentNode.removeChild(script);
+          try{ delete window[cbName]; }catch(_){}
+        }
+
+        window[cbName] = (data)=>{
+          cleanup();
+          resolve(data);
+        };
+
+        const sep = url.includes("?") ? "&" : "?";
+        script.src = url + sep + "callback=" + cbName;
+        script.onerror = ()=>{
+          cleanup();
+          reject(new Error("JSONP error"));
+        };
+        document.body.appendChild(script);
+      });
+    }
+
+    async function api(action, params = {}, payloadObj = null){
+      if(!REMOTE_API_URL || REMOTE_API_URL.includes("PASTE_YOUR")){
+        throw new Error("REMOTE_API_URL not set");
+      }
+      const u = new URL(REMOTE_API_URL);
+      u.searchParams.set("action", action);
+
+      Object.entries(params||{}).forEach(([k,v])=>{
+        if(v === undefined || v === null || v === "") return;
+        u.searchParams.set(k, String(v));
+      });
+
+      if(payloadObj){
+        const payload = base64UrlEncodeUnicode(JSON.stringify(payloadObj));
+        u.searchParams.set("payload", payload);
+      }
+
+      return await jsonp(u.toString());
+    }
+
+    /********************
+     * Remote cache
+     ********************/
+    let state = {
+      drivers: [],
+      updatedAt: 0,
+      myLoc: null,
+      map: null,
+      markers: [],
+      selectedDriverId: null,
+      adminTab: "all",
+      lang: "ar",
+      apiStatusText: "API: —",
+      apiStatusOk: null
+    };
+
+    function loadCache(){
+      try{
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if(!raw) return;
+        const obj = JSON.parse(raw);
+        if(obj && Array.isArray(obj.drivers)){
+          state.drivers = obj.drivers;
+          state.updatedAt = Number(obj.updatedAt||0);
+        }
+      }catch(_){}
+    }
+
+    function saveCache(){
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({
+        drivers: state.drivers,
+        updatedAt: state.updatedAt
+      }));
+    }
+
+    async function refreshRemote(){
+      const res = await api("list");
+      if(!res || !res.ok) throw new Error(res?.error || "API error");
+      state.drivers = res.drivers || [];
+      state.updatedAt = Number(res.updatedAt||0);
+      saveCache();
+      renderFeed();
+      renderAdminIfOpen();
+      updatePills();
+    }
+
+    function updatePills(){
+      $("countPill").textContent = t("countPill", { n: (state.drivers?.length || 0) });
+      $("updatedPill").textContent = t("updatedPill", { d: (state.updatedAt ? fmtDate(state.updatedAt) : "—") });
+    }
+
+    /********************
+     * City list (simple)
+     ********************/
+    const MOROCCO_CITIES = [
+      "Casablanca","Rabat","Salé","Marrakech","Fès","Tanger","Agadir","Meknès",
+      "Oujda","Kénitra","Tétouan","Safi","El Jadida","Nador","Khouribga","Beni Mellal",
+      "Taza","Settat","Mohammedia","Laâyoune","Dakhla","Errachidia","Guelmim","Ouarzazate",
+      "Taroudant","Khemisset","Berrechid","Larache","Sidi Slimane","Taourirt","Ouezzane"
+    ];
+
+    function fillCities(){
+      const dl = $("citiesList");
+      dl.innerHTML = MOROCCO_CITIES.map(c=>`<option value="${escapeHtml(c)}"></option>`).join("");
+    }
+
+    /********************
+     * Area autocomplete via Nominatim (OpenStreetMap)
+     ********************/
+    let areaTimer = null;
+    async function areaSuggest(q, city){
+      const qq = (q||"").trim();
+      if(qq.length < 3) return [];
+      const query = city ? `${qq}, ${city}, Morocco` : `${qq}, Morocco`;
+      const url = new URL("https://nominatim.openstreetmap.org/search");
+      url.searchParams.set("format","json");
+      url.searchParams.set("limit","6");
+      url.searchParams.set("q", query);
+      const res = await fetch(url.toString(), { headers: { "Accept":"application/json" } });
+      const data = await res.json();
+      return (data||[]).map(x=>({
+        title: x.display_name,
+        lat: Number(x.lat),
+        lon: Number(x.lon)
+      }));
+    }
+
+    function bindAreaAutocomplete(inputId, listId, onPick){
+      const input = $(inputId);
+      const list = $(listId);
+
+      input.addEventListener("input", ()=>{
+        clearTimeout(areaTimer);
+        const city = $("driverCityInput")?.value || "";
+        areaTimer = setTimeout(async ()=>{
+          try{
+            const items = await areaSuggest(input.value, city);
+            if(!items.length){
+              list.style.display = "none";
+              list.innerHTML = "";
+              return;
+            }
+            list.innerHTML = items.map(it=>`
+              <div class="auto-item" data-lat="${it.lat}" data-lon="${it.lon}" data-title="${escapeHtml(it.title)}">
+                <b>${escapeHtml(it.title.split(",")[0] || it.title)}</b>
+                <span>${escapeHtml(it.title)}</span>
+              </div>
+            `).join("");
+            list.style.display = "block";
+
+            Array.from(list.querySelectorAll(".auto-item")).forEach(el=>{
+              el.addEventListener("click", ()=>{
+                input.value = el.getAttribute("data-title") || "";
+                list.style.display = "none";
+                list.innerHTML = "";
+                onPick && onPick({
+                  title: input.value,
+                  lat: Number(el.getAttribute("data-lat")),
+                  lon: Number(el.getAttribute("data-lon"))
+                });
+              });
+            });
+
+          }catch(_){
+            list.style.display = "none";
+            list.innerHTML = "";
+          }
+        }, 350);
+      });
+
+      document.addEventListener("click", (e)=>{
+        if(!list.contains(e.target) && e.target !== input){
+          list.style.display = "none";
+        }
+      });
+    }
+
+    /********************
+     * Roles
+     ********************/
+    function getRole(){
+      return localStorage.getItem(ROLE_KEY) || "";
+    }
+    function setRole(r){
+      localStorage.setItem(ROLE_KEY, r);
+    }
+
+    function openRoleModal(){
+      $("roleModal").classList.remove("hidden");
+      $("roleModal").classList.add("flex");
+    }
+    function closeRoleModal(){
+      $("roleModal").classList.add("hidden");
+      $("roleModal").classList.remove("flex");
+    }
+
+    function applyRoleUI(){
+      const role = getRole();
+
+      // Separate interfaces
+      if(role === "customer"){
+        $("registerSection").classList.add("hidden");
+        $("customerSection").classList.remove("hidden");
+        // ✅ customers should not see API pill
+        $("apiPill").classList.add("hidden");
+        // customer doesn't need register nav
+        $("goRegister").classList.add("hidden");
+      }else if(role === "driver"){
+        $("registerSection").classList.remove("hidden");
+        $("customerSection").classList.add("hidden");
+        // driver can see register nav (optional)
+        $("goRegister").classList.remove("hidden");
+        updateApiPillVisibility();
+      }else{
+        // no role picked yet
+        $("registerSection").classList.add("hidden");
+        $("customerSection").classList.add("hidden");
+        $("apiPill").classList.add("hidden");
+        $("goRegister").classList.add("hidden");
+      }
+    }
+
+    function updateApiPillVisibility(){
+      const role = getRole();
+      if(role === "customer" || !role){
+        $("apiPill").classList.add("hidden");
+        return;
+      }
+      $("apiPill").textContent = state.apiStatusText || "API: —";
+      $("apiPill").classList.remove("hidden");
+    }
+
+    /********************
+     * Driver status
+     ********************/
+    function driverStatus(d){
+      const exp = Number(d.subExpiresAt||0);
+      const rs = String(d.receiptStatus||"").toLowerCase();
+      if(exp && exp > nowMs()) return "active";
+      if(rs === "pending") return "pending";
+      return "expired";
+    }
+
+    function remainingText(d){
+      const exp = Number(d.subExpiresAt||0);
+      if(!exp) return "—";
+      const diff = exp - nowMs();
+      if(diff <= 0) return t("ended");
+      const days = Math.floor(diff / (24*60*60*1000));
+      const hrs  = Math.floor((diff % (24*60*60*1000)) / (60*60*1000));
+      if(state.lang === "ar") return `${days} يوم ${hrs} س`;
+      if(state.lang === "fr") return `${days} j ${hrs} h`;
+      return `${days}d ${hrs}h`;
+    }
+
+    /********************
+     * Render feed (customers see all)
+     ********************/
+    function renderFeed(){
+      // if customer section hidden, no need render (but safe)
+      const feed = $("driversFeed");
+      if(!feed) return;
+
+      const city = ($("filterCity").value||"").trim().toLowerCase();
+      const area = ($("filterArea").value||"").trim().toLowerCase();
+      const veh  = ($("filterVehicle").value||"").trim();
+      const sortBy = $("sortBy").value;
+
+      let arr = [...(state.drivers||[])];
+
+      if(city){
+        arr = arr.filter(d=> String(d.city||"").toLowerCase().includes(city));
+      }
+      if(area){
+        arr = arr.filter(d=> String(d.area||"").toLowerCase().includes(area));
+      }
+      if(veh){
+        arr = arr.filter(d=> String(d.vehicle||"") === veh);
+      }
+
+      arr.sort((a,b)=>{
+        const aCreated = Number(a.createdAt||0);
+        const bCreated = Number(b.createdAt||0);
+        if(sortBy === "old") return aCreated - bCreated;
+        if(sortBy === "active"){
+          const as = driverStatus(a)==="active" ? 0 : 1;
+          const bs = driverStatus(b)==="active" ? 0 : 1;
+          if(as !== bs) return as - bs;
+          return bCreated - aCreated;
+        }
+        return bCreated - aCreated;
+      });
+
+      if(!arr.length){
+        feed.innerHTML = `
+          <div class="md:col-span-2 bg-white border rounded-3xl p-6 text-center text-gray-500">
+            ${escapeHtml(t("noDrivers"))}
+          </div>
+        `;
+        return;
+      }
+
+      feed.innerHTML = arr.map(d=>{
+        const st = driverStatus(d);
+        const pay = Array.isArray(d.pay) ? d.pay : [];
+        const phone = normalizePhone(d.phone || d.id || "");
+        const waLink = phone ? `https://wa.me/${phone.replace(/^0/,"212")}` : "#";
+        const telLink = phone ? `tel:${phone}` : "#";
+
+        return `
+          <div class="bg-white border border-gray-100 rounded-3xl p-4 soft-shadow">
+            <div class="flex items-start justify-between gap-2">
+              <div>
+                <div class="font-black text-lg">${escapeHtml(d.name||"Driver")}</div>
+                <div class="text-xs text-gray-500 mt-1">
+                  <i class="fas fa-location-dot ml-1"></i>
+                  ${escapeHtml(d.city||"—")} — ${escapeHtml((d.area||"").split(",")[0] || d.area || "—")}
+                </div>
+              </div>
+              <div class="flex flex-col items-end gap-2">
+                ${badge(st)}
+                <span class="pill bg-gray-50 text-gray-700">${escapeHtml(d.vehicle||"—")}</span>
+              </div>
+            </div>
+
+            <div class="flex flex-wrap gap-2 mt-3">
+              ${(pay||[]).slice(0,4).map(p=>`<span class="pill bg-gray-50 text-gray-700">${escapeHtml(p)}</span>`).join("")}
+              ${(!pay || !pay.length) ? `<span class="pill bg-gray-50 text-gray-400">Pay: —</span>` : ``}
+            </div>
+
+            <div class="flex items-center justify-between gap-2 mt-4">
+              <div class="text-xs text-gray-500">
+                <i class="fas fa-hourglass-half ml-1"></i>
+                ${escapeHtml(t("remaining"))}: <b class="text-gray-700">${escapeHtml(remainingText(d))}</b>
+              </div>
+
+              <div class="flex gap-2">
+                <button class="px-3 py-2 rounded-2xl border font-black hover:bg-gray-50" title="${escapeHtml(t("showOnMap"))}"
+                        onclick="showDriverOnMap('${escapeHtml(d.id)}')">
+                  <i class="fas fa-map-location-dot"></i>
+                </button>
+
+                <a class="px-3 py-2 rounded-2xl border font-black hover:bg-gray-50" title="${escapeHtml(t("call"))}"
+                   href="${telLink}">
+                  <i class="fas fa-phone"></i>
+                </a>
+
+                <a class="px-3 py-2 rounded-2xl border font-black hover:bg-gray-50" title="${escapeHtml(t("whatsapp"))}"
+                   target="_blank" href="${waLink}">
+                  <i class="fab fa-whatsapp"></i>
+                </a>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join("");
+    }
+
+    /********************
+     * Map
+     ********************/
+    function initMap(){
+      state.map = L.map("map").setView([33.5731, -7.5898], 6);
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        maxZoom: 19,
+        attribution: "&copy; OpenStreetMap"
+      }).addTo(state.map);
+    }
+
+    function clearMarkers(){
+      state.markers.forEach(m=>state.map.removeLayer(m));
+      state.markers = [];
+      state.selectedDriverId = null;
+    }
+
+    window.showDriverOnMap = function(id){
+      const d = (state.drivers||[]).find(x=>String(x.id)===String(id));
+      if(!d) return;
+      const lat = Number(d.lat);
+      const lon = Number(d.lon);
+      if(!isFinite(lat) || !isFinite(lon)){
+        toast(t("toastNoLocDriver"));
+        return;
+      }
+      clearMarkers();
+      const m = L.marker([lat,lon]).addTo(state.map).bindPopup(`<b>${escapeHtml(d.name||"Driver")}</b><br>${escapeHtml(d.city||"")}`);
+      state.markers.push(m);
+      state.map.setView([lat,lon], 14);
+      m.openPopup();
+    }
+
+    async function locateMe(){
+      return new Promise((resolve, reject)=>{
+        if(!navigator.geolocation) return reject(new Error("No geolocation"));
+        navigator.geolocation.getCurrentPosition(pos=>{
+          resolve({ lat: pos.coords.latitude, lon: pos.coords.longitude });
+        }, err=>reject(err), { enableHighAccuracy:true, timeout:12000 });
+      });
+    }
+
+    async function setMyLocationOnMap(){
+      try{
+        const loc = await locateMe();
+        state.myLoc = loc;
+        const m = L.circleMarker([loc.lat, loc.lon], { radius:8 }).addTo(state.map).bindPopup(t("myLocation"));
+        state.markers.push(m);
+        state.map.setView([loc.lat, loc.lon], 14);
+        m.openPopup();
+      }catch(_){
+        toast(t("toastNoLoc"));
+      }
+    }
+
+    /********************
+     * Toast / Note
+     ********************/
+    function noteOk(msg){
+      const n = $("formNote");
+      n.className = "mb-4 text-sm p-3 rounded-2xl border border-green-200 bg-green-50 text-green-800";
+      n.textContent = msg;
+      n.classList.remove("hidden");
+      setTimeout(()=>n.classList.add("hidden"), 6000);
+    }
+    function noteErr(msg){
+      const n = $("formNote");
+      n.className = "mb-4 text-sm p-3 rounded-2xl border border-red-200 bg-red-50 text-red-700";
+      n.textContent = msg;
+      n.classList.remove("hidden");
+      setTimeout(()=>n.classList.add("hidden"), 7000);
+    }
+    function toast(msg){
+      noteErr(msg);
+    }
+
+    /********************
+     * Validation
+     ********************/
+    function setErr(id, msg){
+      const el = $(id);
+      if(!el) return;
+      if(msg){
+        el.textContent = msg;
+        el.classList.remove("hidden");
+      } else {
+        el.textContent = "";
+        el.classList.add("hidden");
+      }
+    }
+
+    function validateDriverForm(){
+      const name = $("driverName").value.trim();
+      const city = $("driverCityInput").value.trim();
+      const area = $("driverAreaInput").value.trim();
+      const phone= normalizePhone($("driverPhone").value);
+      const cin  = $("driverCIN").value.trim();
+
+      let ok = true;
+      setErr("nameErr","");
+      setErr("cityErr","");
+      setErr("areaErr","");
+      setErr("phoneErr","");
+      setErr("cinErr","");
+
+      if(name.length < 3){ setErr("nameErr", t("errName")); ok=false; }
+      if(city.length < 2){ setErr("cityErr", t("errCity")); ok=false; }
+      if(area.length < 2){ setErr("areaErr", t("errArea")); ok=false; }
+      if(phone.length < 8){ setErr("phoneErr", t("errPhone")); ok=false; }
+      if(cin.length < 4){ setErr("cinErr", t("errCIN")); ok=false; }
+
+      return ok;
+    }
+
+    function selectedPayMethods(){
+      // ✅ Cash فقط
+      return ["Cash"];
+    }
+
+    /********************
+     * WhatsApp Message (Cash only, no bank accounts)
+     ********************/
+    function waAdminLink(text){
+      const url = new URL("https://wa.me/" + PLATFORM_WHATSAPP_NUMBER);
+      url.searchParams.set("text", text);
+      return url.toString();
+    }
+
+    function openReceiptWhatsApp(driver){
+      const msg =
+`Hello Admin TAWSILA.ma 👋
+طلب تفعيل الاشتراك ✅
+
+Name: ${driver.name}
+Phone: ${driver.phone}
+CIN: ${driver.cin}
+City: ${driver.city}
+Area: ${driver.area}
+Vehicle: ${driver.vehicle}
+
+Price: ${SUB_PRICE_DH} DH / ${SUB_DAYS} days
+Payment: Cash
+
+(Please check the receipt here to activate)`;
+
+      // If Arabic selected, send Arabic message
+      const msgAr =
+`سلام Admin TAWSILA.ma 👋
+بغيت نفعل الاشتراك ديالي ✅
+
+الاسم: ${driver.name}
+الهاتف: ${driver.phone}
+CIN: ${driver.cin}
+المدينة: ${driver.city}
+الحي: ${driver.area}
+المركبة: ${driver.vehicle}
+
+الثمن: ${SUB_PRICE_DH} درهم / ${SUB_DAYS} أيام
+طريقة الأداء: Cash
+
+(رسل لي الوصل هنا باش تفعّلو ليا)`;
+
+      const msgFr =
+`Salut Admin TAWSILA.ma 👋
+Demande d’activation ✅
+
+Nom: ${driver.name}
+Téléphone: ${driver.phone}
+CIN: ${driver.cin}
+Ville: ${driver.city}
+Quartier: ${driver.area}
+Véhicule: ${driver.vehicle}
+
+Prix: ${SUB_PRICE_DH} DH / ${SUB_DAYS} jours
+Paiement: Cash
+
+(Envoie le reçu ici pour activer)`;
+
+      const finalMsg = state.lang === "ar" ? msgAr : (state.lang === "fr" ? msgFr : msg);
+      window.open(waAdminLink(finalMsg), "_blank");
+    }
+
+    /********************
+     * Driver Auto-fill by phone (no re-typing)
+     ********************/
+    let driverDraftLoc = null;
+    let phoneAutoTimer = null;
+
+    async function tryAutoFillByPhone(phone){
+      const p = normalizePhone(phone);
+      if(!p || p.length < 8) return;
+
+      try{
+        const res = await api("get", { id: p });
+        if(res && res.ok && res.driver){
+          const d = res.driver;
+
+          $("driverName").value = d.name || $("driverName").value;
+          $("vehicleType").value = d.vehicle || $("vehicleType").value;
+          $("driverCityInput").value = d.city || $("driverCityInput").value;
+          $("driverAreaInput").value = d.area || $("driverAreaInput").value;
+          $("driverCIN").value = (d.cin || $("driverCIN").value || "").toUpperCase();
+
+          if(isFinite(Number(d.lat)) && isFinite(Number(d.lon))){
+            driverDraftLoc = { lat: Number(d.lat), lon: Number(d.lon) };
+            $("driverLocText").textContent = `✅ ${driverDraftLoc.lat.toFixed(5)}, ${driverDraftLoc.lon.toFixed(5)}`;
+          }
+
+          // show lock overlay based on status
+          const st = driverStatus(d);
+          if(st !== "active"){
+            $("driverLockOverlay").classList.add("show");
+          }else{
+            $("driverLockOverlay").classList.remove("show");
+          }
+
+          noteOk(t("loadedAuto"));
+        }
+      }catch(_){
+        // silent
+      }
+    }
+
+    function bindPhoneAutoFill(){
+      const inp = $("driverPhone");
+      inp.addEventListener("input", ()=>{
+        clearTimeout(phoneAutoTimer);
+        phoneAutoTimer = setTimeout(()=>{
+          const p = normalizePhone(inp.value);
+          if(p.length >= 8){
+            localStorage.setItem(LAST_DRIVER_PHONE, p);
+            tryAutoFillByPhone(p);
+          }
+        }, 450);
+      });
+
+      inp.addEventListener("blur", ()=>{
+        const p = normalizePhone(inp.value);
+        if(p.length >= 8){
+          localStorage.setItem(LAST_DRIVER_PHONE, p);
+          tryAutoFillByPhone(p);
+        }
+      });
+    }
+
+    /********************
+     * Register driver -> Remote upsert
+     ********************/
+    async function registerDriver(){
+      if(!validateDriverForm()) return;
+
+      const driver = {
+        id: normalizePhone($("driverPhone").value),
+        name: $("driverName").value.trim(),
+        vehicle: $("vehicleType").value,
+        phone: normalizePhone($("driverPhone").value),
+        city: $("driverCityInput").value.trim(),
+        area: $("driverAreaInput").value.trim(),
+        pay: selectedPayMethods(),
+        cin: $("driverCIN").value.trim().toUpperCase(),
+        lat: driverDraftLoc?.lat,
+        lon: driverDraftLoc?.lon,
+        receiptStatus: "pending",
+        receiptSubmittedAt: nowMs(),
+        subExpiresAt: 0
+      };
+
+      try{
+        const res = await api("upsert", {}, driver);
+        if(!res || !res.ok) throw new Error(res?.error || "API error");
+
+        // ✅ save driver phone for next time
+        localStorage.setItem(LAST_DRIVER_PHONE, driver.phone);
+
+        noteOk(t("regOk"));
+        await refreshRemote();
+        openReceiptWhatsApp(driver);
+      }catch(err){
+        noteErr(t("regErr") + (err.message||err));
+      }
+    }
+
+    /********************
+     * Wallet check
+     ********************/
+    async function walletCheck(){
+      const phone = normalizePhone($("walletPhone").value);
+      if(!phone){ toast(t("walletNeedPhone")); return; }
+
+      try{
+        const res = await api("get", { id: phone });
+        if(!res || !res.ok) throw new Error(res?.error || "API error");
+        const d = res.driver;
+        if(!d){
+          $("walletPill").textContent = t("walletNotFound");
+          toast(t("walletNotFoundMsg"));
+          return;
+        }
+        const st = driverStatus(d);
+        const pill = st === "active" ? (state.lang==="ar"?"مفعّل ✅":"Active ✅") : (st === "pending" ? "Pending ⏳" : (state.lang==="ar"?"منتهي ❌":"Expired ❌"));
+        $("walletPill").textContent = pill;
+        if(st !== "active"){
+          $("driverLockOverlay").classList.add("show");
+        } else {
+          $("driverLockOverlay").classList.remove("show");
+        }
+        noteOk(`${pill} — ${t("remaining")}: ${remainingText(d)}`);
+      }catch(err){
+        noteErr(t("walletErr") + (err.message||err));
+      }
+    }
+
+    /********************
+     * Admin
+     ********************/
+    function adminAuthed(){
+      return localStorage.getItem(ADMIN_AUTH) === "1";
+    }
+    function setAdminAuthed(v){
+      localStorage.setItem(ADMIN_AUTH, v ? "1" : "0");
+    }
+
+    function openAdmin(){
+      $("adminModal").classList.remove("hidden");
+      $("adminModal").classList.add("flex");
+      if(adminAuthed()){
+        $("adminLoginBox").classList.add("hidden");
+        $("adminPanel").classList.remove("hidden");
+        renderAdmin();
+      }else{
+        $("adminLoginBox").classList.remove("hidden");
+        $("adminPanel").classList.add("hidden");
+      }
+    }
+    function closeAdmin(){
+      $("adminModal").classList.add("hidden");
+      $("adminModal").classList.remove("flex");
+    }
+
+    function renderAdminIfOpen(){
+      if(!$("adminModal").classList.contains("hidden") && adminAuthed()){
+        renderAdmin();
+      }
+    }
+
+    function renderAdmin(){
+      const drivers = state.drivers || [];
+      const total = drivers.length;
+      const active = drivers.filter(d=>driverStatus(d)==="active").length;
+      const pending = drivers.filter(d=>String(d.receiptStatus||"").toLowerCase()==="pending").length;
+
+      $("kpiTotal").textContent = total;
+      $("kpiActive").textContent = active;
+      $("kpiPending").textContent = pending;
+
+      const tab = state.adminTab || "all";
+      let arr = [...drivers];
+
+      if(tab === "pending"){
+        arr = arr.filter(d=>String(d.receiptStatus||"").toLowerCase()==="pending");
+      }else if(tab === "active"){
+        arr = arr.filter(d=>driverStatus(d)==="active");
+      }else if(tab === "expired"){
+        arr = arr.filter(d=>driverStatus(d)==="expired");
+      }
+
+      arr.sort((a,b)=>Number(b.createdAt||0)-Number(a.createdAt||0));
+
+      $("adminRows").innerHTML = arr.map(d=>{
+        const st = driverStatus(d);
+        const exp = Number(d.subExpiresAt||0);
+        const id = String(d.id||"");
+        const phone = normalizePhone(d.phone||id);
+
+        return `
+          <tr>
+            <td>
+              <div class="font-black">${escapeHtml(d.name||"—")}</div>
+              <div class="text-[11px] text-gray-500">ID: <span class="mono">${escapeHtml(id)}</span></div>
+              <div class="text-[11px] text-gray-500">Created: ${fmtDate(d.createdAt)}</div>
+            </td>
+            <td class="mono">${escapeHtml(phone||"—")}</td>
+            <td class="mono">${escapeHtml(d.cin||"—")}</td>
+            <td>
+              <div class="font-black">${escapeHtml(d.city||"—")}</div>
+              <div class="text-[11px] text-gray-500">${escapeHtml(d.area||"—")}</div>
+            </td>
+            <td>${escapeHtml(d.vehicle||"—")}</td>
+            <td>
+              ${badge(st)}
+              <div class="text-[11px] text-gray-500 mt-1">Receipt: <b>${escapeHtml(d.receiptStatus||"—")}</b></div>
+            </td>
+            <td>
+              <div class="text-[11px]">Expire: <b>${fmtDate(exp)}</b></div>
+              <div class="text-[11px] text-gray-500">Remaining: ${escapeHtml(remainingText(d))}</div>
+            </td>
+            <td>
+              <div class="flex flex-wrap gap-2">
+                <button class="px-3 py-2 rounded-2xl bg-green-600 text-white font-black hover:bg-green-700"
+                        onclick="adminActivate7('${escapeHtml(id)}')">
+                  ${escapeHtml(state.lang==="ar" ? `تفعيل ${SUB_DAYS} أيام` : (state.lang==="fr" ? `Activer ${SUB_DAYS} j` : `Activate ${SUB_DAYS}d`))}
+                </button>
+                <button class="px-3 py-2 rounded-2xl border font-black hover:bg-gray-50"
+                        onclick="adminMarkPending('${escapeHtml(id)}')">
+                  Pending
+                </button>
+                <button class="px-3 py-2 rounded-2xl border font-black hover:bg-gray-50"
+                        onclick="adminDelete('${escapeHtml(id)}')">
+                  ${escapeHtml(state.lang==="ar" ? "حذف" : (state.lang==="fr" ? "Supprimer" : "Delete"))}
+                </button>
+              </div>
+
+              <div class="mt-2">
+                <a class="text-[11px] font-black text-green-700" target="_blank"
+                   href="${waAdminLink(
+                     state.lang==="ar"
+                      ? `سائق: ${d.name}\nهاتف: ${phone}\nCIN: ${d.cin}\nالمدينة: ${d.city}\nالحي: ${d.area}\n\n(هنا نراجع الوصل)`
+                      : (state.lang==="fr"
+                        ? `Chauffeur: ${d.name}\nTéléphone: ${phone}\nCIN: ${d.cin}\nVille: ${d.city}\nQuartier: ${d.area}\n\n(Ici on vérifie le reçu)`
+                        : `Driver: ${d.name}\nPhone: ${phone}\nCIN: ${d.cin}\nCity: ${d.city}\nArea: ${d.area}\n\n(Check receipt here)`
+                      )
+                   )}">
+                  ${escapeHtml(state.lang==="ar" ? "فتح واتساب (مراجعة)" : (state.lang==="fr" ? "Ouvrir WhatsApp (review)" : "Open WhatsApp (review)"))}
+                </a>
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join("");
+    }
+
+    window.adminActivate7 = async function(id){
+      try{
+        const exp = nowMs() + SUB_MS;
+        const payload = {
+          ids: [String(id)],
+          patch: {
+            subExpiresAt: exp,
+            receiptStatus: "approved",
+            receiptSubmittedAt: nowMs()
+          }
+        };
+        const res = await api("bulk_patch", {}, payload);
+        if(!res || !res.ok) throw new Error(res?.error || "API error");
+        noteOk(t("adminActivated", { days: SUB_DAYS }));
+        await refreshRemote();
+      }catch(err){
+        noteErr(t("adminErrActivate") + (err.message||err));
+      }
+    }
+
+    window.adminMarkPending = async function(id){
+      try{
+        const payload = {
+          ids: [String(id)],
+          patch: { receiptStatus: "pending", receiptSubmittedAt: nowMs() }
+        };
+        const res = await api("bulk_patch", {}, payload);
+        if(!res || !res.ok) throw new Error(res?.error || "API error");
+        noteOk(t("adminPendingOk"));
+        await refreshRemote();
+      }catch(err){
+        noteErr(t("adminErrGeneric") + (err.message||err));
+      }
+    }
+
+    window.adminDelete = async function(id){
+      if(!confirm(t("confirmDelete"))) return;
+      try{
+        const res = await api("delete", {}, { ids: [String(id)] });
+        if(!res || !res.ok) throw new Error(res?.error || "API error");
+        noteOk(t("adminDeleted"));
+        await refreshRemote();
+      }catch(err){
+        noteErr(t("adminErrDelete") + (err.message||err));
+      }
+    }
+
+    /********************
+     * Bindings
+     ********************/
+    function bindUI(){
+      // socials
+      $("navInstagram").href = SOCIAL_LINKS.instagram;
+      $("navFacebook").href  = SOCIAL_LINKS.facebook;
+      $("footWa").href       = SOCIAL_LINKS.whatsapp;
+
+      // language
+      $("langSelect").addEventListener("change", (e)=>{
+        applyLanguage(e.target.value);
+      });
+
+      // role modal
+      $("pickCustomer").addEventListener("click", ()=>{
+        setRole("customer"); closeRoleModal();
+        applyRoleUI();
+        noteOk(t("msgRoleCustomer"));
+      });
+      $("pickDriver").addEventListener("click", ()=>{
+        setRole("driver"); closeRoleModal();
+        applyRoleUI();
+        noteOk(t("msgRoleDriver"));
+
+        // auto fill from last phone if exists
+        const last = localStorage.getItem(LAST_DRIVER_PHONE) || "";
+        if(last){
+          $("driverPhone").value = last;
+          tryAutoFillByPhone(last);
+        }
+      });
+      $("switchRoleBtn").addEventListener("click", ()=>{
+        localStorage.removeItem(ROLE_KEY);
+        applyRoleUI();
+        openRoleModal();
+      });
+
+      // register
+      $("registerBtn").addEventListener("click", registerDriver);
+
+      // phone autofill
+      bindPhoneAutoFill();
+
+      // driver location button
+      $("driverLocBtn").addEventListener("click", async ()=>{
+        try{
+          const loc = await locateMe();
+          driverDraftLoc = loc;
+          $("driverLocText").textContent = `✅ (${loc.lat.toFixed(5)}, ${loc.lon.toFixed(5)})`;
+          noteOk(state.lang==="ar" ? "تم أخذ الموقع ✅" : (state.lang==="fr" ? "Position enregistrée ✅" : "Location saved ✅"));
+        }catch(_){
+          toast(t("toastNoLoc"));
+        }
+      });
+
+      // lock overlay action
+      $("lockRechargeBtn").addEventListener("click", ()=>{
+        const driver = {
+          name: $("driverName").value.trim() || (state.lang==="ar" ? "سائق" : "Driver"),
+          phone: normalizePhone($("driverPhone").value) || normalizePhone($("walletPhone").value) || "",
+          cin: $("driverCIN").value.trim().toUpperCase() || "—",
+          city: $("driverCityInput").value.trim() || "—",
+          area: $("driverAreaInput").value.trim() || "—",
+          vehicle: $("vehicleType").value || "—"
+        };
+        openReceiptWhatsApp(driver);
+      });
+
+      // wallet
+      $("walletCheckBtn").addEventListener("click", walletCheck);
+      $("walletSendReceiptBtn").addEventListener("click", ()=>{
+        const phone = normalizePhone($("walletPhone").value) || normalizePhone($("driverPhone").value);
+        const d = (state.drivers||[]).find(x=>String(x.id)===String(phone)) || null;
+        if(d) openReceiptWhatsApp(d);
+        else openReceiptWhatsApp({
+          name: $("driverName").value.trim() || (state.lang==="ar" ? "سائق" : "Driver"),
+          phone: phone || "",
+          cin: $("driverCIN").value.trim().toUpperCase() || "—",
+          city: $("driverCityInput").value.trim() || "—",
+          area: $("driverAreaInput").value.trim() || "—",
+          vehicle: $("vehicleType").value || "—"
+        });
+      });
+
+      // feed controls
+      ["filterCity","filterArea","filterVehicle","sortBy"].forEach(id=>{
+        $(id).addEventListener("input", renderFeed);
+        $(id).addEventListener("change", renderFeed);
+      });
+      $("refreshBtn").addEventListener("click", refreshRemote);
+
+      // map controls
+      $("myLocBtn").addEventListener("click", async ()=>{
+        clearMarkers();
+        await setMyLocationOnMap();
+      });
+      $("mapClearBtn").addEventListener("click", clearMarkers);
+
+      // fullscreen map
+      $("mapFullBtn").addEventListener("click", ()=>{
+        const wrap = $("mapWrap");
+        wrap.classList.add("map-fullscreen");
+        $("mapExitFabBtn").classList.remove("hidden");
+        setTimeout(()=>state.map.invalidateSize(), 200);
+      });
+      $("mapExitFabBtn").addEventListener("click", ()=>{
+        const wrap = $("mapWrap");
+        wrap.classList.remove("map-fullscreen");
+        $("mapExitFabBtn").classList.add("hidden");
+        setTimeout(()=>state.map.invalidateSize(), 200);
+      });
+
+      // admin
+      $("adminBtn").addEventListener("click", openAdmin);
+      $("adminClose").addEventListener("click", closeAdmin);
+
+      $("adminLoginBtn").addEventListener("click", ()=>{
+        const pass = $("adminPass").value;
+        if(pass !== ADMIN_PASSWORD){
+          $("adminLoginErr").textContent = t("adminPassWrong");
+          $("adminLoginErr").classList.remove("hidden");
+          return;
+        }
+        $("adminLoginErr").classList.add("hidden");
+        setAdminAuthed(true);
+        $("adminLoginBox").classList.add("hidden");
+        $("adminPanel").classList.remove("hidden");
+        renderAdmin();
+      });
+
+      $("adminLogoutBtn").addEventListener("click", ()=>{
+        setAdminAuthed(false);
+        $("adminLoginBox").classList.remove("hidden");
+        $("adminPanel").classList.add("hidden");
+      });
+
+      $("adminRefreshBtn").addEventListener("click", refreshRemote);
+
+      document.querySelectorAll(".adminTab").forEach(btn=>{
+        btn.addEventListener("click", ()=>{
+          state.adminTab = btn.getAttribute("data-tab") || "all";
+          document.querySelectorAll(".adminTab").forEach(b=>b.classList.remove("bg-gray-900","text-white"));
+          btn.classList.add("bg-gray-900","text-white");
+          renderAdmin();
+        });
+      });
+
+      const firstTab = document.querySelector('.adminTab[data-tab="all"]');
+      if(firstTab) firstTab.classList.add("bg-gray-900","text-white");
+    }
+
+    /********************
+     * Init
+     ********************/
+    async function init(){
+      fillCities();
+      initMap();
+      bindUI();
+
+      // load preferred language
+      const savedLang = localStorage.getItem(LANG_KEY) || "ar";
+      $("langSelect").value = (savedLang==="fr"||savedLang==="en"||savedLang==="ar") ? savedLang : "ar";
+      applyLanguage($("langSelect").value);
+
+      // area autocomplete binds
+      bindAreaAutocomplete("driverAreaInput", "driverAreaList", (picked)=>{
+        if(picked && isFinite(picked.lat) && isFinite(picked.lon)){
+          driverDraftLoc = { lat: picked.lat, lon: picked.lon };
+        }
+      });
+
+      // role UI
+      applyRoleUI();
+
+      // API pill (hidden for customers)
+      try{
+        const info = await api("info");
+        if(info && info.ok){
+          state.apiStatusOk = true;
+          state.apiStatusText = t("apiOk");
+        }else{
+          state.apiStatusOk = false;
+          state.apiStatusText = t("apiErr");
+        }
+      }catch(_){
+        state.apiStatusOk = false;
+        state.apiStatusText = t("apiErrSet");
+      }
+      updateApiPillVisibility();
+
+      // load cached drivers first
+      loadCache();
+      renderFeed();
+      updatePills();
+
+      // show role picker once
+      if(!getRole()){
+        openRoleModal();
+      }else{
+        // if driver, auto-fill from last phone
+        if(getRole()==="driver"){
+          const last = localStorage.getItem(LAST_DRIVER_PHONE) || "";
+          if(last){
+            $("driverPhone").value = last;
+            tryAutoFillByPhone(last);
+          }
+        }
+      }
+
+      // fetch remote
+      try{
+        await refreshRemote();
+      }catch(err){
+        noteErr(t("apiFetchNote"));
+      }
+    }
+
+    init();
+  </script>
+
+</body>
+</html>
