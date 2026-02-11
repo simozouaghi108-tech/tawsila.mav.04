@@ -20,7 +20,7 @@
     .hero-bg { background: linear-gradient(135deg, #c1272d 0%, #006233 100%); }
     .soft-shadow { box-shadow: 0 12px 30px rgba(0,0,0,.08); }
     .ring-focus:focus { outline: none; box-shadow: 0 0 0 4px rgba(193,39,45,.15); border-color: #c1272d; }
-    .pill{ font-size: 11px; padding: 4px 10px; border-radius: 999px; border:1px solid #eee; font-weight: 800; }
+    .pill{ font-size: 11px; padding: 4px 10px; border-radius: 999px; border:1px solid #eee; font-weight: 900; }
     .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
 
     #map { height: 240px; border-radius: 1.5rem; overflow: hidden; }
@@ -68,6 +68,8 @@
     .auto-item b{ display:block; font-size: 13px; color:#111; }
     .auto-item span{ display:block; font-size: 11px; color:#6b7280; margin-top:2px; }
 
+    .hint{ font-size: 11px; color:#9ca3af; margin-top:6px; }
+
     .lock-overlay{
       position:absolute; inset:0; background: rgba(255,255,255,.92);
       border-radius: 1.5rem; z-index: 50;
@@ -83,7 +85,7 @@
     .role-card{ box-shadow: 0 20px 50px rgba(0,0,0,.16); }
     .btn{ border-radius: 16px; padding: 10px 12px; font-weight: 900; }
 
-    /* RTL/LTR helpers for small spacing swap (minimal) */
+    /* RTL/LTR spacing swap (minimal) */
     html[dir="ltr"] .ml-1{ margin-left:0!important; margin-right:.25rem!important; }
     html[dir="ltr"] .ml-2{ margin-left:0!important; margin-right:.5rem!important; }
     html[dir="ltr"] .ml-3{ margin-left:0!important; margin-right:.75rem!important; }
@@ -123,7 +125,7 @@
 
   <!-- ADMIN MODAL -->
   <div id="adminModal" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-[210] p-4 backdrop-blur-sm">
-    <div class="bg-white rounded-[2rem] max-w-5xl w-full role-card overflow-hidden">
+    <div class="bg-white rounded-[2rem] max-w-6xl w-full role-card overflow-hidden">
       <div class="p-5 border-b flex items-center justify-between gap-3">
         <div class="flex items-center gap-3">
           <div class="w-11 h-11 rounded-2xl bg-gray-900 text-white flex items-center justify-center">
@@ -140,7 +142,7 @@
       </div>
 
       <div class="p-5">
-        <!-- ALWAYS REQUIRE PASSWORD (no remembered login) -->
+        <!-- ALWAYS REQUIRE PASSWORD -->
         <div id="adminLoginBox" class="max-w-md mx-auto bg-gray-50 border rounded-3xl p-5">
           <div id="adminLoginTitle" class="font-extrabold mb-2">تسجيل الدخول</div>
           <div id="adminLoginSub" class="text-xs text-gray-500 mb-3">دخل كلمة السر ديال Admin</div>
@@ -223,7 +225,6 @@
       </div>
 
       <div class="flex items-center gap-2">
-        <!-- Language -->
         <select id="langSelect" class="px-3 py-2 rounded-full border font-extrabold text-xs bg-white hover:bg-gray-50">
           <option value="ar">العربية</option>
           <option value="fr">Français</option>
@@ -238,7 +239,7 @@
         </a>
 
         <button id="adminBtn" class="px-4 py-2 rounded-full border font-extrabold text-xs hover:bg-gray-50" title="Admin">
-          <i class="fas fa-shield-halved ml-1"></i> Admin
+          <i class="fas fa-shield-halved ml-1"></i> <span id="adminBtnTxt">Admin</span>
         </button>
 
         <a href="#register" id="goRegister"
@@ -307,8 +308,8 @@
         <div>
           <label id="lblVehicle" class="text-xs font-black text-gray-500">نوع المركبة</label>
           <select id="vehicleType" class="w-full border-2 border-gray-100 p-3 rounded-xl ring-focus">
-            <option value="سيارة">سيارة</option>
-            <option value="دراجة">دراجة نارية</option>
+            <option value="سيارة" id="optCar">سيارة</option>
+            <option value="دراجة" id="optBike">دراجة نارية</option>
           </select>
         </div>
 
@@ -325,6 +326,7 @@
           <input id="driverAreaInput" class="w-full border-2 border-gray-100 p-3 rounded-xl ring-focus"
                  placeholder="مثال: المعاريف / شارع محمد الخامس..." autocomplete="off"/>
           <div id="driverAreaList" class="auto-list"></div>
+          <div id="driverAreaHint" class="hint">* كتب أي حي/شارع/زقاق، وغادي يبان ليك اقتراحات فالمغرب كامل.</div>
           <p id="areaErr" class="hidden mt-1 text-xs text-red-600 font-black"></p>
         </div>
 
@@ -351,7 +353,7 @@
               <p id="driverLocText" class="text-[11px] text-gray-500 mt-1">باش يبان للزبون القريب منك، فعّل موقعك.</p>
             </div>
             <button id="driverLocBtn" class="bg-white border px-3 py-2 rounded-xl text-xs font-black hover:bg-gray-100 transition">
-              <i class="fas fa-location-crosshairs ml-1"></i> استعمال موقعي
+              <i class="fas fa-location-crosshairs ml-1"></i> <span id="useMyLocTxt">استعمال موقعي</span>
             </button>
           </div>
         </div>
@@ -360,17 +362,16 @@
           <p id="lblPayMethods" class="text-xs text-gray-500 mb-2 font-black">طرق الأداء المقبولة لديك:</p>
           <div class="flex flex-wrap gap-2 text-xs">
             <label class="bg-white px-3 py-1 rounded-full border shadow-sm cursor-pointer select-none">
-              <input type="checkbox" class="payMethod ml-1" value="Cash" checked disabled> <span id="cashOnlyTxt">Cash فقط</span>
+              <input type="checkbox" class="payMethod ml-1" value="Cash" checked disabled>
+              <span id="cashOnlyTxt">Cash فقط</span>
             </label>
           </div>
         </div>
 
-        <!-- ✅ ONLY ONE BUTTON -->
         <button id="registerBtn" class="w-full bg-red-600 text-white py-4 rounded-2xl font-black text-lg hover:shadow-lg transition transform active:scale-95">
           تسجيل وإرسال الوصل
         </button>
 
-        <!-- ✅ After register: message + status button -->
         <div id="afterRegisterBox" class="hidden mt-3 bg-green-50 border border-green-200 rounded-3xl p-4">
           <div id="afterRegisterMsg" class="text-sm font-black text-green-800">تم تسجيلك ✅</div>
           <button id="checkStatusBtn" class="w-full mt-3 bg-gray-900 text-white py-3 rounded-2xl font-black hover:opacity-90 transition">
@@ -383,12 +384,90 @@
 
     <!-- CUSTOMER -->
     <section id="customerSection" class="lg:col-span-2">
+
       <div class="flex items-center justify-between mb-6">
         <h3 id="driversTitle" class="text-2xl font-black flex items-center gap-2">
           <i class="fas fa-road text-gray-300"></i>
           السائقون (جدد + قدامى)
         </h3>
         <span id="syncBadge" class="text-sm bg-green-100 text-green-700 px-3 py-1 rounded-full animate-pulse">مزامنة</span>
+      </div>
+
+      <!-- ✅ CUSTOMER SERVICES (من الكود الأول): الرحلة + موقع الزبون -->
+      <div class="bg-white border border-gray-100 rounded-3xl p-4 soft-shadow mb-4 space-y-4">
+
+        <!-- Trip -->
+        <div class="bg-gray-50 border border-gray-100 rounded-3xl p-4">
+          <div class="flex items-center justify-between gap-3">
+            <div>
+              <p id="tripTitle" class="text-xs font-black text-gray-600">طلب رحلة (من → إلى)</p>
+              <p id="tripNote" class="text-[11px] text-gray-400 mt-1">كتب حي/شارع/زقاق + مدينة… وغادي يبان اقتراح ذكي.</p>
+            </div>
+            <span id="tripStatus" class="text-xs px-3 py-1 rounded-full bg-white border text-gray-500">جاهز</span>
+          </div>
+
+          <div class="grid md:grid-cols-3 gap-3 mt-3 items-end">
+            <div class="auto-box">
+              <label id="fromLbl" class="text-xs font-black text-gray-500">من</label>
+              <input id="tripFrom" class="w-full border-2 border-gray-100 p-3 rounded-xl ring-focus" autocomplete="off"
+                     placeholder="مثال: حي المعاريف، الدار البيضاء">
+              <div id="tripFromList" class="auto-list"></div>
+              <div id="hintFrom" class="hint">اقتراحات: أحياء/شوارع/أزقة داخل المغرب.</div>
+            </div>
+
+            <div class="auto-box">
+              <label id="toLbl" class="text-xs font-black text-gray-500">إلى</label>
+              <input id="tripTo" class="w-full border-2 border-gray-100 p-3 rounded-xl ring-focus" autocomplete="off"
+                     placeholder="مثال: أكدال، الرباط">
+              <div id="tripToList" class="auto-list"></div>
+              <div id="hintTo" class="hint">اقتراحات: أحياء/شوارع/أزقة داخل المغرب.</div>
+            </div>
+
+            <div class="flex gap-2">
+              <button id="calcTripBtn" class="w-full bg-gray-900 text-white py-3 rounded-xl font-black text-sm hover:opacity-90 transition">
+                <i class="fas fa-calculator ml-1"></i> <span id="calcTripTxt">حساب الرحلة</span>
+              </button>
+              <button id="useMyLocAsFrom" class="px-4 py-3 rounded-xl border font-black text-sm bg-white hover:bg-gray-50 transition" title="استعمل موقعي كنقطة الانطلاق">
+                <i class="fas fa-location-dot"></i>
+              </button>
+            </div>
+          </div>
+
+          <div id="tripResult" class="hidden mt-3 grid md:grid-cols-4 gap-3">
+            <div class="p-3 rounded-2xl bg-white border">
+              <div id="distanceLbl" class="text-xs text-gray-500 font-black">المسافة</div>
+              <div id="tripKm" class="text-lg font-black text-gray-800">—</div>
+            </div>
+            <div class="p-3 rounded-2xl bg-white border">
+              <div id="durationLbl" class="text-xs text-gray-500 font-black">وقت الرحلة</div>
+              <div id="tripTime" class="text-lg font-black text-gray-800">—</div>
+            </div>
+            <div class="p-3 rounded-2xl bg-white border">
+              <div id="priceCarLbl" class="text-xs text-gray-500 font-black">ثمن (سيارة)</div>
+              <div id="tripPriceCar" class="text-lg font-black text-gray-800">—</div>
+            </div>
+            <div class="p-3 rounded-2xl bg-white border">
+              <div id="priceMotoLbl" class="text-xs text-gray-500 font-black">ثمن (دراجة)</div>
+              <div id="tripPriceMoto" class="text-lg font-black text-gray-800">—</div>
+            </div>
+          </div>
+
+          <p id="tripErr" class="hidden mt-2 text-sm text-red-600 font-black"></p>
+        </div>
+
+        <!-- Customer location -->
+        <div class="grid md:grid-cols-3 gap-3 items-start">
+          <div class="md:col-span-2">
+            <p id="userLocLbl" class="text-xs font-black text-gray-500">موقع الزبون</p>
+            <p id="userAddress" class="text-sm font-black text-gray-800 mt-1">مازال ما تفعلش الموقع</p>
+            <p id="userLocNote" class="text-[11px] text-gray-400 mt-1">* كيجيب لك حتى الحي/الشارع إذا متاح.</p>
+          </div>
+          <div class="flex gap-2">
+            <button id="userLocBtn" class="w-full bg-gray-900 text-white py-3 rounded-xl font-black text-sm hover:opacity-90 transition">
+              <i class="fas fa-location-dot ml-1"></i> <span id="enableLocTxt">تفعيل موقعي</span>
+            </button>
+          </div>
+        </div>
       </div>
 
       <!-- Filters -->
@@ -405,7 +484,7 @@
           <div>
             <label id="lblFilterVeh" class="text-xs font-black text-gray-500">نوع المركبة</label>
             <select id="filterVehicle" class="w-full border-2 border-gray-100 p-3 rounded-xl ring-focus">
-              <option value="">الكل</option>
+              <option value="" id="optAll2">الكل</option>
               <option value="سيارة">سيارة</option>
               <option value="دراجة">دراجة</option>
             </select>
@@ -413,10 +492,32 @@
           <div>
             <label id="lblSort" class="text-xs font-black text-gray-500">ترتيب</label>
             <select id="sortBy" class="w-full border-2 border-gray-100 p-3 rounded-xl ring-focus">
-              <option value="new">الأحدث</option>
-              <option value="old">الأقدم</option>
-              <option value="active">المفعّلين أولا</option>
+              <option value="new" id="sortNew">الأحدث</option>
+              <option value="old" id="sortOld">الأقدم</option>
+              <option value="active" id="sortActive">المفعّلين أولا</option>
             </select>
+          </div>
+        </div>
+
+        <div class="grid md:grid-cols-4 gap-3 mt-3 items-end">
+          <div class="md:col-span-2">
+            <label id="lblSearch" class="text-xs font-black text-gray-500">بحث</label>
+            <input id="searchQ" class="w-full border-2 border-gray-100 p-3 rounded-xl ring-focus" placeholder="الإسم/الرقم/الحي...">
+          </div>
+          <div>
+            <label id="lblRadius" class="text-xs font-black text-gray-500">القرب (KM)</label>
+            <select id="radiusKm" class="w-full border-2 border-gray-100 p-3 rounded-xl ring-focus">
+              <option value="2">2 KM</option>
+              <option value="5" selected>5 KM</option>
+              <option value="10">10 KM</option>
+              <option value="20">20 KM</option>
+              <option value="50">50 KM</option>
+            </select>
+          </div>
+          <div class="flex gap-2">
+            <button id="nearToggle" class="w-full px-4 py-3 rounded-xl border font-black text-sm bg-gray-100 hover:bg-gray-200 transition" aria-pressed="false">
+              قريب مني
+            </button>
           </div>
         </div>
 
@@ -425,9 +526,14 @@
             <span class="pill bg-gray-50 text-gray-700" id="countPill">—</span>
             <span class="pill bg-gray-50 text-gray-700" id="updatedPill">—</span>
           </div>
-          <button id="refreshBtn" class="px-4 py-2 rounded-2xl border font-black hover:bg-gray-50">
-            تحديث <i class="fas fa-rotate mr-1"></i>
-          </button>
+          <div class="flex gap-2">
+            <button id="refreshBtn" class="px-4 py-2 rounded-2xl border font-black hover:bg-gray-50">
+              تحديث <i class="fas fa-rotate mr-1"></i>
+            </button>
+            <button id="clearCacheBtn" class="px-4 py-2 rounded-2xl border font-black hover:bg-gray-50">
+              حذف المحفوظ <i class="fas fa-broom mr-1"></i>
+            </button>
+          </div>
         </div>
       </div>
 
@@ -491,13 +597,25 @@
     /********************
      * ✅ SETTINGS (بدّل غير هادو)
      ********************/
-    const REMOTE_API_URL = "https://script.google.com/macros/s/AKfycbzxOQEMtzhcsqeLNTTn63-m_tprVpHsTwVdVQAKKfR_fzlRn2sgVpa4_52O4LaLS_Bd/exec"; // <-- رابطك /exec
-    const ADMIN_PASSWORD = "Simo.simo";             // اختياري
-    const PLATFORM_WHATSAPP_NUMBER = "212617139424";// اختياري (رقم الإدارة)
+    const REMOTE_API_URL = "https://script.google.com/macros/s/AKfycbzxOQEMtzhcsqeLNTTn63-m_tprVpHsTwVdVQAKKfR_fzlRn2sgVpa4_52O4LaLS_Bd/exec"; // رابطك /exec
+    const ADMIN_PASSWORD = "Simo.simo";              // Admin password
+    const PLATFORM_WHATSAPP_NUMBER = "212617139424"; // رقم الإدارة (بدون +)
 
     const SUB_PRICE_DH = 300;
     const SUB_DAYS = 8;                 // ✅ 8 أيام
     const SUB_MS = SUB_DAYS * 24 * 60 * 60 * 1000;
+
+    // تقدير الثمن (من الكود الأول)
+    const FARES = {
+      car:  { base: 8, perKm: 3.2, perMin: 0.0 },
+      moto: { base: 6, perKm: 2.4, perMin: 0.0 }
+    };
+
+    const AVG_SPEED_KMH_TO_PICKUP = { "سيارة": 28, "دراجة": 32 };
+    function estimateEtaToPickupMin(km, vehicle){
+      const speed = AVG_SPEED_KMH_TO_PICKUP[vehicle] || 28;
+      return Math.max(1, Math.round((km / speed) * 60 + 2));
+    }
 
     const SOCIAL_LINKS = {
       whatsapp: "https://wa.me/" + PLATFORM_WHATSAPP_NUMBER,
@@ -512,6 +630,23 @@
     const ROLE_KEY    = "tawsila_role_v1";
     const LANG_KEY    = "tawsila_lang_v1";
     const LAST_DRIVER_PHONE = "tawsila_last_driver_phone_v1";
+    const RATINGS_KEY = "tawsila_user_ratings_v1";
+    const FILTERS_KEY = "tawsila_filters_v7";
+    const TRIP_KEY    = "tawsila_trip_v4";
+
+    /********************
+     * Morocco cities
+     ********************/
+    const MOROCCO_CITIES = [
+      "الدار البيضاء","الرباط","سلا","تمارة","القنيطرة","فاس","مكناس","طنجة","تطوان","الحسيمة",
+      "وجدة","الناظور","بركان","تاوريرت","جرسيف","تازة","سطات","برشيد","المحمدية","بنسليمان",
+      "الخميسات","سيدي سليمان","سيدي قاسم","وزان","العرائش","القصر الكبير","شفشاون","آسفي","الجديدة",
+      "الصويرة","مراكش","بني ملال","الفقيه بن صالح","خريبكة","وادي زم","أزيلال","الراشيدية","ورزازات",
+      "زاكورة","ميدلت","تنغير","أكادير","إنزكان","آيت ملول","الدشيرة الجهادية","تيزنيت","تارودانت",
+      "أولاد تايمة","أيت باها","سيدي إفني","كلميم","طانطان","السمارة","العيون","الداخلة","بوجدور",
+      "صفرو","الحاجب","إفران","خنيفرة","جرادة","فكيك","اليوسفية","قلعة السراغنة","سيدي بنور",
+      "أزمور","الزمامرة","زايو","دريوش","بني أنصار","مارتيل","الفنيدق","المضيق","أصيلة"
+    ];
 
     /********************
      * Helpers
@@ -530,1608 +665,1702 @@
     function escapeHtml(s){
       return String(s??"").replace(/[&<>"']/g, m=>({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;" }[m]));
     }
-    function normalizePhone(p){
-      return String(p||"").replace(/\s+/g,"").trim();
+    function normalizePhone(raw){ return String(raw||"").trim().replace(/[^\d]/g, ""); }
+    function isValidMoroccanPhone(p){ return /^(06|07)\d{8}$/.test(normalizePhone(p)); }
+    function normalizeCIN(raw){ return String(raw||"").trim().toUpperCase().replace(/\s+/g,""); }
+    function isValidCIN(cin){ return /^[A-Z]{1,2}\d{3,8}$/.test(normalizeCIN(cin)); }
+
+    function toastNote(kind, text){
+      const note = $("formNote");
+      note.classList.remove("hidden");
+      note.textContent = text;
+      note.className = "mb-4 text-sm p-3 rounded-2xl border font-extrabold";
+      note.classList.add(kind === "success" ? "bg-green-50 border-green-200 text-green-700" : "bg-red-50 border-red-200 text-red-700");
+      setTimeout(()=>{ note.classList.add("hidden"); }, 3500);
+    }
+
+    function formatRemaining(ms){
+      const totalMin = Math.max(0, Math.floor(ms / 60000));
+      const days = Math.floor(totalMin / (60*24));
+      const hours = Math.floor((totalMin - days*60*24) / 60);
+      const mins = totalMin % 60;
+      return { days, hours, mins };
+    }
+
+    function isActive(d){
+      const exp = Number(d?.subExpiresAt || 0);
+      return exp > Date.now();
+    }
+
+    function waAdminLink(message){
+      const clean = PLATFORM_WHATSAPP_NUMBER.replace(/[^\d]/g,"");
+      return `https://wa.me/${clean}?text=${encodeURIComponent(message)}`;
+    }
+
+    function distanceKm(lat1, lon1, lat2, lon2){
+      const R = 6371;
+      const toRad = (d) => d * Math.PI / 180;
+      const dLat = toRad(lat2 - lat1);
+      const dLon = toRad(lon2 - lon1);
+      const a = Math.sin(dLat/2)**2 + Math.cos(toRad(lat1))*Math.cos(toRad(lat2))*Math.sin(dLon/2)**2;
+      return 2 * R * Math.asin(Math.sqrt(a));
+    }
+
+    function priceForTrip(distanceKmVal, durationMinVal, vehicleLabel){
+      const type = (vehicleLabel === "دراجة") ? "moto" : "car";
+      const f = (type === "moto") ? FARES.moto : FARES.car;
+      const price = f.base + (distanceKmVal * f.perKm) + (durationMinVal * f.perMin);
+      return Math.max(0, Math.round(price));
     }
 
     /********************
-     * i18n
+     * i18n (مختصر + عملي)
      ********************/
     const I18N = {
       ar: {
-        roleTitle: "مرحبا 👋",
-        roleSub: 'اختار: واش نتا <b>سائق</b> ولا <b>زبون</b>؟',
-        roleHint: '* تقدر تبدّل الدور من زر "تبديل الدور" فالفوتر.',
-        iAmCustomer: "أنا زبون",
-        iAmDriver: "أنا سائق",
+        adminBtn:"Admin",
+        heroTitle:"لقـي سائق قريب منك فثواني 🚗🏍️",
+        heroSub:"تواصل مباشرة واتساب أو اتصال — الأداء Cash فقط.",
+        feat1S:"بحث بالمدينة والحي",
+        feat2S:`اشتراك ${SUB_DAYS} أيام`,
+        feat3S:"الموقع كيبان غير إلا فعّلو السائق",
 
-        adminTitle: "لوحة الإدارة",
-        adminSub: "كتشوف السائقين من أي متصفح + تفعيل {days} أيام",
-        close: "إغلاق",
-        loginTitle: "تسجيل الدخول",
-        loginSub: "دخل كلمة السر ديال Admin",
-        passwordPH: "Password",
-        loginBtn: "دخول",
-        tab_all: "الكل",
-        tab_pending: "بانتظار الوصل",
-        tab_active: "مفعّلين",
-        tab_expired: "منتهيين",
-        refresh: "تحديث",
-        logout: "خروج",
-        kpiTotalLbl: "إجمالي السائقين",
-        kpiActiveLbl: "مفعّلين الآن",
-        kpiPendingLbl: "بانتظار الوصل",
-        thDriver: "السائق",
-        thPhone: "الهاتف",
-        thCIN: "CIN",
-        thCityArea: "المدينة/الحي",
-        thVehicle: "المركبة",
-        thStatus: "الحالة",
-        thSub: "الاشتراك",
-        thActions: "أوامر",
-        adminNote: '* زر "تفعيل {days} أيام" كيدير <span class="mono">subExpiresAt = الآن + {days} أيام</span> وكيرجع كيبان فكل المتصفحات.',
+        roleTitle:"مرحبا 👋",
+        roleSub:'اختار: واش نتا <b>سائق</b> ولا <b>زبون</b>؟',
+        roleHint:'* تقدر تبدّل الدور من زر "تبديل الدور" فالفوتر.',
+        iAmCustomer:"أنا زبون",
+        iAmDriver:"أنا سائق",
 
-        goRegister: "سجل سائق",
+        regTitle:"تسجيل سائق جديد",
+        lblCity:"المدينة",
+        lblArea:"الحي / الشارع / الزقاق",
+        driverAreaHint:"* كتب أي حي/شارع/زقاق، وغادي يبان ليك اقتراحات فالمغرب كامل.",
+        useMyLoc:"استعمال موقعي",
+        lockTitle:"الاشتراك منتهي",
+        lockText:`خاصك تشحن <b>${SUB_PRICE_DH} درهم</b> باش يتفعّل الحساب <b>${SUB_DAYS} أيام</b>.`,
+        lockBtn:"إرسال الوصل للإدارة",
 
-        heroTitle: "لقـي سائق قريب منك فثواني 🚗🏍️",
-        heroSub: "تواصل مباشرة واتساب أو اتصال — الأداء Cash فقط.",
-        feat1T: '<i class="fas fa-users ml-2"></i>سائقين قريبين منك',
-        feat1S: "بحث بالمدينة والحي",
-        feat2T: '<i class="fas fa-shield-halved ml-2"></i>تفعيل سريع',
-        feat2S: "اشتراك {days} أيام",
-        feat3T: '<i class="fas fa-map-location-dot ml-2"></i>خريطة',
-        feat3S: "الموقع كيبان غير إلا فعّلو السائق",
+        driversTitle:"السائقون (جدد + قدامى)",
+        sync:"مزامنة",
+        apiOk:"API: OK",
+        apiErr:"API: ERR",
+        apiErrSet:"API: ERR (set URL)",
 
-        regTitle: '<i class="fas fa-id-card text-red-600"></i> تسجيل سائق جديد',
-        lockTitle: "الاشتراك منتهي",
-        lockText: "خاصك تشحن <b>{price} درهم</b> باش يتفعّل الحساب <b>{days} أيام</b>.",
-        lockBtn: '<i class="fab fa-whatsapp ml-1"></i> إرسال الوصل للإدارة',
+        tripTitle:"طلب رحلة (من → إلى)",
+        tripNote:"كتب حي/شارع/زقاق + مدينة… وغادي يبان اقتراح ذكي.",
+        ready:"جاهز",
+        calcTrip:"حساب الرحلة",
+        fillFromTo:"عمر من وإلى.",
+        routeFailed:"تعذر حساب الطريق. جرب مكان آخر.",
+        locating:"جاري تحديد الموقع...",
 
-        lblName: "الإسم الكامل",
-        phName: "مثال: محمد العلوي",
-        lblVehicle: "نوع المركبة",
-        lblCity: "المدينة",
-        phCity: "كتب اسم المدينة...",
-        lblArea: "الحي / الشارع / الزقاق",
-        phArea: "مثال: المعاريف / شارع محمد الخامس...",
-        lblPhone: "رقم الهاتف",
-        phPhone: "مثال: 0612345678",
-        autoFillHint: "* إلا كنت مسجّل قبل، دخل غير رقم الهاتف وغادي نجيب بياناتك أوتوماتيك.",
-        lblCIN: "رقم البطاقة الوطنية (CIN)",
-        phCIN: "مثال: AB123456",
-        cinPrivacy: "* CIN ما كيبانش للزبون، غير للإدارة/التفعيل.",
-        lblLocOpt: "موقع السائق (اختياري)",
-        locHelp: "باش يبان للزبون القريب منك، فعّل موقعك.",
-        useMyLoc: '<i class="fas fa-location-crosshairs ml-1"></i> استعمال موقعي',
-        lblPayMethods: "طرق الأداء المقبولة لديك:",
-        cashOnlyTxt: "Cash فقط",
-        registerBtn: "تسجيل وإرسال الوصل",
+        userLoc:"موقع الزبون",
+        locNotEnabled:"مازال ما تفعلش الموقع",
+        locNote:"* كيجيب لك حتى الحي/الشارع إذا متاح.",
+        enableLoc:"تفعيل موقعي",
 
-        afterRegMsg: "تم تسجيلك ✅",
-        statusBtn: "عرض الحالة",
-        statusNeedPhone: "دخل رقم الهاتف أولاً.",
-        statusPending: "الحالة: بانتظار قبول Admin ⏳",
-        statusActive: "الحالة: مقبول ومفعّل ✅",
-        statusExpired: "الحالة: منتهي ❌",
-        statusRemaining: "متبقي: {r}",
+        nearMe:"قريب مني",
+        noDrivers:"ما كاين حتى سائق حاليا. جرّب \"تحديث\".",
+        countPill:"عدد السائقين: {n}",
+        updatedPill:"آخر تحديث: {d}",
 
-        driversTitle: 'السائقون (جدد + قدامى)',
-        sync: "مزامنة",
-        lblFilterCity: "فلتر مدينة",
-        phFilterCity: "مثال: Casablanca",
-        lblFilterArea: "فلتر حي",
-        phFilterArea: "المعاريف...",
-        lblFilterVeh: "نوع المركبة",
-        optAll: "الكل",
-        optCar: "سيارة",
-        optBike: "دراجة",
-        lblSort: "ترتيب",
-        sortNew: "الأحدث",
-        sortOld: "الأقدم",
-        sortActive: "المفعّلين أولا",
-        mapTitle: "الخريطة",
-        mapSub: "كيبان موقع السائق إذا فعّلو (اختياري)",
-        myLoc: 'موقعي <i class="fas fa-location-crosshairs mr-1"></i>',
-        zoom: 'تكبير <i class="fas fa-expand mr-1"></i>',
-        mapFsTitle: "الخريطة (Fullscreen)",
-        exit: 'خروج <i class="fas fa-compress mr-1"></i>',
-        clear: "Clear",
-        exitBtn: "Exit",
+        badge_active:"مفعّل",
+        badge_pending:"بانتظار الوصل",
+        badge_expired:"منتهي",
+        remaining:"متبقي",
+        ended:"منتهي",
 
-        countPill: "عدد السائقين: {n}",
-        updatedPill: "آخر تحديث: {d}",
+        call:"Call",
+        whatsapp:"WhatsApp",
+        showOnMap:"Show on map",
+        eta:"ETA",
 
-        badge_active: "مفعّل",
-        badge_pending: "بانتظار الوصل",
-        badge_expired: "منتهي",
-        remaining: "متبقي",
-        ended: "منتهي",
+        statusNeedPhone:"دخل رقم الهاتف أولاً.",
+        statusPending:"الحالة: بانتظار قبول Admin ⏳",
+        statusActive:"الحالة: مقبول ومفعّل ✅",
+        statusExpired:"الحالة: منتهي ❌",
+        statusRemaining:"متبقي: {r}",
 
-        noDrivers: "ما كاين حتى سائق حاليا. جرّب \"تحديث\" ولا سجّل أول سائق.",
-        showOnMap: "Show on map",
-        call: "Call",
-        whatsapp: "WhatsApp",
-
-        msgRoleCustomer: "مرحبا زبون 👋",
-        msgRoleDriver: "مرحبا سائق 👋",
-
-        apiOk: "API: OK",
-        apiErr: "API: ERR",
-        apiErrSet: "API: ERR (set URL)",
-
-        errName: "دخل اسم صحيح",
-        errCity: "دخل المدينة",
-        errArea: "دخل الحي/الشارع",
-        errPhone: "دخل رقم صحيح",
-        errCIN: "دخل CIN صحيح",
-
-        toastNoLoc: "ما قدرناش نجيبوا الموقع. فعل GPS.",
-        toastNoLocDriver: "هذا السائق ما فعّلش الموقع.",
-
-        regOk: "تسجلتي ✅ دابا غادي يتحل WhatsApp باش ترسل الوصل للإدارة.",
-        regErr: "مشكل فالتسجيل: ",
-
-        adminPassWrong: "كلمة السر غير صحيحة",
-        adminActivated: "تم التفعيل {days} أيام ✅",
-        adminPendingOk: "تمت إعادة الحالة Pending ✅",
-        adminDeleted: "تحذف ✅",
-        adminErrActivate: "خطأ فالتفعيل: ",
-        adminErrGeneric: "خطأ: ",
-        adminErrDelete: "خطأ فالحذف: ",
-        confirmDelete: "متأكد باغي تحذف هاد السائق؟",
-
-        loadedAuto: "لقينا حسابك ✅ جبدنا بياناتك أوتوماتيك.",
-        apiFetchNote: "ملاحظة: ما قدرناش نجبدو البيانات من Google Sheets. تأكد من REMOTE_API_URL.",
-        myLocation: "موقعي"
+        adminTitle:"لوحة الإدارة",
+        adminSub:`كتشوف السائقين من أي متصفح + تفعيل ${SUB_DAYS} أيام`,
+        loginTitle:"تسجيل الدخول",
+        loginSub:"دخل كلمة السر ديال Admin",
+        passWrong:"كلمة السر غير صحيحة",
+        tab_all:"الكل",
+        tab_pending:"بانتظار الوصل",
+        tab_active:"مفعّلين",
+        tab_expired:"منتهيين",
+        kpiTotal:"إجمالي السائقين",
+        kpiActive:"مفعّلين الآن",
+        kpiPending:"بانتظار الوصل",
+        actActivate:`تفعيل ${SUB_DAYS} أيام`,
+        actPending:"Pending",
+        actExpire:"إنهاء",
+        actDelete:"حذف",
+        confirmDelete:"متأكد باغي تحذف هاد السائق؟"
       },
-
       fr: {
-        roleTitle: "Bienvenue 👋",
-        roleSub: 'Choisis : tu es <b>Chauffeur</b> ou <b>Client</b> ?',
-        roleHint: '* Tu peux changer de rôle via le bouton en bas.',
-        iAmCustomer: "Je suis client",
-        iAmDriver: "Je suis chauffeur",
+        adminBtn:"Admin",
+        heroTitle:"Trouve un chauffeur près de toi en quelques secondes 🚗🏍️",
+        heroSub:"Contact WhatsApp ou appel — Cash only.",
+        feat1S:"Recherche par ville/quartier",
+        feat2S:`Abonnement ${SUB_DAYS} jours`,
+        feat3S:"Position si activée",
 
-        adminTitle: "Panneau d’administration",
-        adminSub: "Voir les chauffeurs depuis n’importe quel navigateur + activation {days} jours",
-        close: "Fermer",
-        loginTitle: "Connexion",
-        loginSub: "Entre le mot de passe Admin",
-        passwordPH: "Mot de passe",
-        loginBtn: "Entrer",
-        tab_all: "Tous",
-        tab_pending: "En attente du reçu",
-        tab_active: "Actifs",
-        tab_expired: "Expirés",
-        refresh: "Rafraîchir",
-        logout: "Déconnexion",
-        kpiTotalLbl: "Total chauffeurs",
-        kpiActiveLbl: "Actifs",
-        kpiPendingLbl: "En attente",
-        thDriver: "Chauffeur",
-        thPhone: "Téléphone",
-        thCIN: "CIN",
-        thCityArea: "Ville/Quartier",
-        thVehicle: "Véhicule",
-        thStatus: "Statut",
-        thSub: "Abonnement",
-        thActions: "Actions",
-        adminNote: '* "Activer {days} jours" met <span class="mono">subExpiresAt = now + {days} jours</span> et sync partout.',
+        roleTitle:"Bienvenue 👋",
+        roleSub:'Choisis : tu es <b>Chauffeur</b> ou <b>Client</b> ?',
+        roleHint:'* Tu peux changer de rôle via le bouton en bas.',
+        iAmCustomer:"Je suis client",
+        iAmDriver:"Je suis chauffeur",
 
-        goRegister: "Inscrire chauffeur",
+        regTitle:"Inscription chauffeur",
+        lblCity:"Ville",
+        lblArea:"Quartier / rue",
+        driverAreaHint:"* Tape un lieu au Maroc pour suggestions.",
+        useMyLoc:"Utiliser ma position",
+        lockTitle:"Abonnement expiré",
+        lockText:`Paye <b>${SUB_PRICE_DH} DH</b> pour activer <b>${SUB_DAYS} jours</b>.`,
+        lockBtn:"Envoyer le reçu",
 
-        heroTitle: "Trouve un chauffeur près de toi en quelques secondes 🚗🏍️",
-        heroSub: "Contact WhatsApp ou appel — Cash only.",
-        feat1T: '<i class="fas fa-users ml-2"></i>Chauffeurs près de toi',
-        feat1S: "Recherche par ville/quartier",
-        feat2T: '<i class="fas fa-shield-halved ml-2"></i>Activation rapide',
-        feat2S: "Abonnement {days} jours",
-        feat3T: '<i class="fas fa-map-location-dot ml-2"></i>Carte',
-        feat3S: "Position فقط si activée",
+        driversTitle:"Chauffeurs",
+        sync:"Sync",
+        apiOk:"API: OK",
+        apiErr:"API: ERR",
+        apiErrSet:"API: ERR (set URL)",
 
-        regTitle: '<i class="fas fa-id-card text-red-600"></i> Inscription chauffeur',
-        lockTitle: "Abonnement expiré",
-        lockText: "Pay <b>{price} DH</b> pour activer <b>{days} jours</b>.",
-        lockBtn: '<i class="fab fa-whatsapp ml-1"></i> Envoyer le reçu',
+        tripTitle:"Trajet (Départ → Arrivée)",
+        tripNote:"Saisis un lieu au Maroc et choisis une suggestion.",
+        ready:"Prêt",
+        calcTrip:"Calculer",
+        fillFromTo:"Remplir départ & arrivée.",
+        routeFailed:"Calcul itinéraire impossible. Essayez un autre lieu.",
+        locating:"Localisation...",
 
-        lblName: "Nom complet",
-        phName: "Ex : Mohamed...",
-        lblVehicle: "Type de véhicule",
-        lblCity: "Ville",
-        phCity: "Écris la ville...",
-        lblArea: "Quartier / rue",
-        phArea: "Ex : Maarif...",
-        lblPhone: "Téléphone",
-        phPhone: "Ex : 0612345678",
-        autoFillHint: "* Déjà inscrit ? Entre ton numéro et on remplit تلقائياً.",
-        lblCIN: "CIN",
-        phCIN: "Ex : AB123456",
-        cinPrivacy: "* CIN non visible côté client.",
-        lblLocOpt: "Localisation (optionnel)",
-        locHelp: "Active ta position pour apparaître près des clients.",
-        useMyLoc: '<i class="fas fa-location-crosshairs ml-1"></i> Utiliser ma position',
-        lblPayMethods: "Paiement:",
-        cashOnlyTxt: "Cash only",
-        registerBtn: "S’inscrire & envoyer le reçu",
+        userLoc:"Position client",
+        locNotEnabled:"Position non activée",
+        locNote:"* Quartier/rue si disponible.",
+        enableLoc:"Activer ma position",
 
-        afterRegMsg: "Inscription OK ✅",
-        statusBtn: "Vérifier le statut",
-        statusNeedPhone: "Entre le numéro d’abord.",
-        statusPending: "Statut: En attente d’approbation ⏳",
-        statusActive: "Statut: Approuvé & actif ✅",
-        statusExpired: "Statut: Expiré ❌",
-        statusRemaining: "Restant: {r}",
+        nearMe:"Près de moi",
+        noDrivers:"Aucun chauffeur pour le moment. Rafraîchis.",
+        countPill:"Chauffeurs: {n}",
+        updatedPill:"Dernière maj: {d}",
 
-        driversTitle: "Chauffeurs",
-        sync: "Sync",
-        lblFilterCity: "Ville",
-        phFilterCity: "Ex: Casablanca",
-        lblFilterArea: "Quartier",
-        phFilterArea: "Maarif...",
-        lblFilterVeh: "Véhicule",
-        optAll: "Tous",
-        optCar: "Voiture",
-        optBike: "Moto",
-        lblSort: "Tri",
-        sortNew: "Récent",
-        sortOld: "Ancien",
-        sortActive: "Actifs d’abord",
-        mapTitle: "Carte",
-        mapSub: "Position si activée",
-        myLoc: 'Ma position <i class="fas fa-location-crosshairs mr-1"></i>',
-        zoom: 'Zoom <i class="fas fa-expand mr-1"></i>',
-        mapFsTitle: "Carte (plein écran)",
-        exit: 'Quitter <i class="fas fa-compress mr-1"></i>',
-        clear: "Clear",
-        exitBtn: "Exit",
+        badge_active:"Actif",
+        badge_pending:"En attente",
+        badge_expired:"Expiré",
+        remaining:"Restant",
+        ended:"Expiré",
 
-        countPill: "Chauffeurs: {n}",
-        updatedPill: "Dernière maj: {d}",
+        call:"Appel",
+        whatsapp:"WhatsApp",
+        showOnMap:"Voir sur carte",
+        eta:"ETA",
 
-        badge_active: "Actif",
-        badge_pending: "En attente",
-        badge_expired: "Expiré",
-        remaining: "Restant",
-        ended: "Expiré",
+        statusNeedPhone:"Entre le numéro d’abord.",
+        statusPending:"Statut: En attente ⏳",
+        statusActive:"Statut: Actif ✅",
+        statusExpired:"Statut: Expiré ❌",
+        statusRemaining:"Restant: {r}",
 
-        noDrivers: "Aucun chauffeur pour le moment.",
-        msgRoleCustomer: "Bienvenue client 👋",
-        msgRoleDriver: "Bienvenue chauffeur 👋",
-
-        apiOk: "API: OK",
-        apiErr: "API: ERR",
-        apiErrSet: "API: ERR (set URL)",
-
-        errName: "Nom invalide",
-        errCity: "Ville requise",
-        errArea: "Quartier requis",
-        errPhone: "Téléphone invalide",
-        errCIN: "CIN invalide",
-
-        toastNoLoc: "Impossible d’obtenir la position. Active GPS.",
-        toastNoLocDriver: "Ce chauffeur n’a pas activé la position.",
-
-        regOk: "Inscription ✅ WhatsApp va s’ouvrir pour envoyer le reçu.",
-        regErr: "Erreur: ",
-
-        adminPassWrong: "Mot de passe incorrect",
-        adminActivated: "Activé {days} jours ✅",
-        adminPendingOk: "Remis en attente ✅",
-        adminDeleted: "Supprimé ✅",
-        adminErrActivate: "Erreur d’activation: ",
-        adminErrGeneric: "Erreur: ",
-        adminErrDelete: "Erreur suppression: ",
-        confirmDelete: "Confirmer la suppression ?",
-
-        loadedAuto: "Compte trouvé ✅ Infos chargées تلقائياً.",
-        apiFetchNote: "Impossible de charger Google Sheets. Vérifie REMOTE_API_URL.",
-        myLocation: "Ma position"
+        adminTitle:"Panneau d’administration",
+        adminSub:`Activation ${SUB_DAYS} jours + sync navigateur`,
+        loginTitle:"Connexion",
+        loginSub:"Entre le mot de passe",
+        passWrong:"Mot de passe incorrect",
+        tab_all:"Tous",
+        tab_pending:"En attente",
+        tab_active:"Actifs",
+        tab_expired:"Expirés",
+        kpiTotal:"Total chauffeurs",
+        kpiActive:"Actifs",
+        kpiPending:"En attente",
+        actActivate:`Activer ${SUB_DAYS} jours`,
+        actPending:"Pending",
+        actExpire:"Expirer",
+        actDelete:"Supprimer",
+        confirmDelete:"Confirmer la suppression ?"
       },
-
       en: {
-        roleTitle: "Welcome 👋",
-        roleSub: "Choose: are you a <b>Driver</b> or a <b>Customer</b>?",
-        roleHint: '* You can switch role from the footer button.',
-        iAmCustomer: "I’m a customer",
-        iAmDriver: "I’m a driver",
+        adminBtn:"Admin",
+        heroTitle:"Find a driver near you in seconds 🚗🏍️",
+        heroSub:"Contact via WhatsApp or call — Cash only.",
+        feat1S:"Search by city/area",
+        feat2S:`${SUB_DAYS}-day subscription`,
+        feat3S:"Location shown if enabled",
 
-        adminTitle: "Admin Panel",
-        adminSub: "View drivers from any browser + activate {days} days",
-        close: "Close",
-        loginTitle: "Login",
-        loginSub: "Enter admin password",
-        passwordPH: "Password",
-        loginBtn: "Login",
-        tab_all: "All",
-        tab_pending: "Pending receipt",
-        tab_active: "Active",
-        tab_expired: "Expired",
-        refresh: "Refresh",
-        logout: "Logout",
-        kpiTotalLbl: "Total drivers",
-        kpiActiveLbl: "Active now",
-        kpiPendingLbl: "Pending",
-        thDriver: "Driver",
-        thPhone: "Phone",
-        thCIN: "CIN",
-        thCityArea: "City/Area",
-        thVehicle: "Vehicle",
-        thStatus: "Status",
-        thSub: "Subscription",
-        thActions: "Actions",
-        adminNote: '* "Activate {days} days" sets <span class="mono">subExpiresAt = now + {days} days</span> and syncs everywhere.',
+        roleTitle:"Welcome 👋",
+        roleSub:"Choose: are you a <b>Driver</b> or a <b>Customer</b>?",
+        roleHint:"* You can switch role from the footer button.",
+        iAmCustomer:"I’m a customer",
+        iAmDriver:"I’m a driver",
 
-        goRegister: "Register driver",
+        regTitle:"Driver registration",
+        lblCity:"City",
+        lblArea:"Area / street",
+        driverAreaHint:"* Type a place in Morocco for suggestions.",
+        useMyLoc:"Use my location",
+        lockTitle:"Subscription expired",
+        lockText:`Recharge <b>${SUB_PRICE_DH} DH</b> to activate <b>${SUB_DAYS} days</b>.`,
+        lockBtn:"Send receipt",
 
-        heroTitle: "Find a nearby driver in seconds 🚗🏍️",
-        heroSub: "Direct WhatsApp or call — Cash only.",
-        feat1T: '<i class="fas fa-users ml-2"></i>Nearby drivers',
-        feat1S: "Search by city and area",
-        feat2T: '<i class="fas fa-shield-halved ml-2"></i>Fast activation',
-        feat2S: "{days}-day subscription",
-        feat3T: '<i class="fas fa-map-location-dot ml-2"></i>Map',
-        feat3S: "Location shows only if enabled",
+        driversTitle:"Drivers",
+        sync:"Sync",
+        apiOk:"API: OK",
+        apiErr:"API: ERR",
+        apiErrSet:"API: ERR (set URL)",
 
-        regTitle: '<i class="fas fa-id-card text-red-600"></i> Driver registration',
-        lockTitle: "Subscription expired",
-        lockText: "Pay <b>{price} DH</b> to activate for <b>{days} days</b>.",
-        lockBtn: '<i class="fab fa-whatsapp ml-1"></i> Send receipt',
+        tripTitle:"Trip (From → To)",
+        tripNote:"Type any place in Morocco and pick suggestions.",
+        ready:"Ready",
+        calcTrip:"Calculate",
+        fillFromTo:"Fill From & To.",
+        routeFailed:"Route failed. Try another place.",
+        locating:"Locating...",
 
-        lblName: "Full name",
-        phName: "Example: ...",
-        lblVehicle: "Vehicle type",
-        lblCity: "City",
-        phCity: "Type your city...",
-        lblArea: "Area / street",
-        phArea: "Example: ...",
-        lblPhone: "Phone",
-        phPhone: "Example: 0612345678",
-        autoFillHint: "* Registered before? Enter phone and we’ll auto-fill.",
-        lblCIN: "CIN",
-        phCIN: "Example: AB123456",
-        cinPrivacy: "* CIN is admin-only.",
-        lblLocOpt: "Driver location (optional)",
-        locHelp: "Enable location to appear nearby.",
-        useMyLoc: '<i class="fas fa-location-crosshairs ml-1"></i> Use my location',
-        lblPayMethods: "Payment:",
-        cashOnlyTxt: "Cash only",
-        registerBtn: "Register & send receipt",
+        userLoc:"Customer location",
+        locNotEnabled:"Location not enabled",
+        locNote:"* Area/street if available.",
+        enableLoc:"Enable my location",
 
-        afterRegMsg: "Registered ✅",
-        statusBtn: "Check status",
-        statusNeedPhone: "Enter phone first.",
-        statusPending: "Status: Pending admin approval ⏳",
-        statusActive: "Status: Approved & active ✅",
-        statusExpired: "Status: Expired ❌",
-        statusRemaining: "Remaining: {r}",
+        nearMe:"Near me",
+        noDrivers:"No drivers for now. Refresh.",
+        countPill:"Drivers: {n}",
+        updatedPill:"Last update: {d}",
 
-        driversTitle: "Drivers",
-        sync: "Sync",
-        lblFilterCity: "City filter",
-        phFilterCity: "Example: Casablanca",
-        lblFilterArea: "Area filter",
-        phFilterArea: "Maarif...",
-        lblFilterVeh: "Vehicle",
-        optAll: "All",
-        optCar: "Car",
-        optBike: "Bike",
-        lblSort: "Sort",
-        sortNew: "Newest",
-        sortOld: "Oldest",
-        sortActive: "Active first",
-        mapTitle: "Map",
-        mapSub: "Shows location if enabled",
-        myLoc: 'My location <i class="fas fa-location-crosshairs mr-1"></i>',
-        zoom: 'Zoom <i class="fas fa-expand mr-1"></i>',
-        mapFsTitle: "Map (Fullscreen)",
-        exit: 'Exit <i class="fas fa-compress mr-1"></i>',
-        clear: "Clear",
-        exitBtn: "Exit",
+        badge_active:"Active",
+        badge_pending:"Pending",
+        badge_expired:"Expired",
+        remaining:"Remaining",
+        ended:"Ended",
 
-        countPill: "Drivers: {n}",
-        updatedPill: "Last update: {d}",
+        call:"Call",
+        whatsapp:"WhatsApp",
+        showOnMap:"Show on map",
+        eta:"ETA",
 
-        badge_active: "Active",
-        badge_pending: "Pending",
-        badge_expired: "Expired",
-        remaining: "Remaining",
-        ended: "Expired",
+        statusNeedPhone:"Enter phone first.",
+        statusPending:"Status: Pending ⏳",
+        statusActive:"Status: Active ✅",
+        statusExpired:"Status: Expired ❌",
+        statusRemaining:"Remaining: {r}",
 
-        noDrivers: "No drivers yet.",
-        msgRoleCustomer: "Welcome customer 👋",
-        msgRoleDriver: "Welcome driver 👋",
-
-        apiOk: "API: OK",
-        apiErr: "API: ERR",
-        apiErrSet: "API: ERR (set URL)",
-
-        errName: "Enter a valid name",
-        errCity: "Enter city",
-        errArea: "Enter area",
-        errPhone: "Enter valid phone",
-        errCIN: "Enter valid CIN",
-
-        toastNoLoc: "Couldn't get location. Enable GPS.",
-        toastNoLocDriver: "This driver didn't enable location.",
-
-        regOk: "Registered ✅ WhatsApp will open to send the receipt.",
-        regErr: "Registration error: ",
-
-        adminPassWrong: "Wrong password",
-        adminActivated: "Activated {days} days ✅",
-        adminPendingOk: "Set back to pending ✅",
-        adminDeleted: "Deleted ✅",
-        adminErrActivate: "Activation error: ",
-        adminErrGeneric: "Error: ",
-        adminErrDelete: "Delete error: ",
-        confirmDelete: "Delete this driver?",
-
-        loadedAuto: "Account found ✅ Auto-filled your data.",
-        apiFetchNote: "Couldn't load Google Sheets. Check REMOTE_API_URL.",
-        myLocation: "My location"
+        adminTitle:"Admin Panel",
+        adminSub:`Activate ${SUB_DAYS} days + browser sync`,
+        loginTitle:"Login",
+        loginSub:"Enter admin password",
+        passWrong:"Wrong password",
+        tab_all:"All",
+        tab_pending:"Pending",
+        tab_active:"Active",
+        tab_expired:"Expired",
+        kpiTotal:"Total drivers",
+        kpiActive:"Active now",
+        kpiPending:"Pending",
+        actActivate:`Activate ${SUB_DAYS} days`,
+        actPending:"Pending",
+        actExpire:"Expire",
+        actDelete:"Delete",
+        confirmDelete:"Confirm delete?"
       }
     };
 
-    function t(key, vars={}){
-      const pack = I18N[state.lang] || I18N.ar;
-      let s = (pack && pack[key]) || (I18N.ar && I18N.ar[key]) || key;
-      s = String(s).replace(/\{(\w+)\}/g, (_,k)=> (vars[k] !== undefined ? String(vars[k]) : ""));
+    function tr(key){
+      const L = I18N[state.lang] || I18N.ar;
+      return (L[key] ?? I18N.ar[key] ?? key);
+    }
+    function trFmt(key, vars){
+      let s = tr(key);
+      Object.entries(vars||{}).forEach(([k,v]) => s = s.replaceAll("{"+k+"}", String(v)));
       return s;
     }
 
     /********************
-     * Remote state
+     * State
      ********************/
-    let state = {
+    const state = {
+      lang: localStorage.getItem(LANG_KEY) || "ar",
+      role: localStorage.getItem(ROLE_KEY) || "",
       drivers: [],
       updatedAt: 0,
-      myLoc: null,
-      map: null,
-      markers: [],
-      selectedDriverId: null,
-      adminTab: "all",
-      lang: "ar",
-      apiStatusText: "API: —",
-      apiStatusOk: null,
-      adminAuthed: false
+      userPos: null,
+      userAddressText: "",
+      nearEnabled: false,
+      regDriverPos: null,
+      tripPick: { from:null, to:null },
+      trip: null,
+      adminLogged: false,
+      adminTab: "all"
     };
 
-    function applyLanguage(lang){
-      state.lang = (lang === "fr" || lang === "en" || lang === "ar") ? lang : "ar";
-      localStorage.setItem(LANG_KEY, state.lang);
-
-      const html = document.documentElement;
-      html.lang = state.lang;
-      html.dir  = (state.lang === "ar") ? "rtl" : "ltr";
-
-      $("roleTitle").textContent = t("roleTitle");
-      $("roleSub").innerHTML = t("roleSub");
-      $("roleHint").textContent = t("roleHint");
-      $("pickCustomer").innerHTML = `<i class="fas fa-person-walking ml-2"></i> ${t("iAmCustomer")}`;
-      $("pickDriver").innerHTML   = `<i class="fas fa-car-side ml-2"></i> ${t("iAmDriver")}`;
-
-      $("adminTitle").textContent = t("adminTitle");
-      $("adminSub").textContent = t("adminSub", { days: SUB_DAYS });
-      $("adminClose").innerHTML = `${t("close")} <i class="fas fa-xmark mr-1"></i>`;
-      $("adminLoginTitle").textContent = t("loginTitle");
-      $("adminLoginSub").textContent = t("loginSub");
-      $("adminPass").setAttribute("placeholder", t("passwordPH"));
-      $("adminLoginBtn").textContent = t("loginBtn");
-      $("adminRefreshBtn").innerHTML = `${t("refresh")} <i class="fas fa-rotate mr-1"></i>`;
-      $("adminLogoutBtn").innerHTML  = `${t("logout")} <i class="fas fa-right-from-bracket mr-1"></i>`;
-      $("kpiTotalLbl").textContent = t("kpiTotalLbl");
-      $("kpiActiveLbl").textContent = t("kpiActiveLbl");
-      $("kpiPendingLbl").textContent = t("kpiPendingLbl");
-      $("thDriver").textContent = t("thDriver");
-      $("thPhone").textContent = t("thPhone");
-      $("thCIN").textContent = t("thCIN");
-      $("thCityArea").textContent = t("thCityArea");
-      $("thVehicle").textContent = t("thVehicle");
-      $("thStatus").textContent = t("thStatus");
-      $("thSub").textContent = t("thSub");
-      $("thActions").textContent = t("thActions");
-      $("adminNote").innerHTML = t("adminNote", { days: SUB_DAYS });
-
-      document.querySelectorAll(".adminTab").forEach(btn=>{
-        const tab = btn.getAttribute("data-tab");
-        if(tab === "all") btn.textContent = t("tab_all");
-        if(tab === "pending") btn.textContent = t("tab_pending");
-        if(tab === "active") btn.textContent = t("tab_active");
-        if(tab === "expired") btn.textContent = t("tab_expired");
-      });
-
-      $("goRegister").textContent = t("goRegister");
-
-      $("heroTitle").textContent = t("heroTitle");
-      $("heroSub").textContent   = t("heroSub");
-      $("feat1T").innerHTML = t("feat1T");
-      $("feat1S").textContent = t("feat1S");
-      $("feat2T").innerHTML = t("feat2T");
-      $("feat2S").textContent = t("feat2S", { days: SUB_DAYS });
-      $("feat3T").innerHTML = t("feat3T");
-      $("feat3S").textContent = t("feat3S");
-
-      $("regTitle").innerHTML = t("regTitle");
-      $("lockTitle").textContent = t("lockTitle");
-      $("lockText").innerHTML = t("lockText", { price: SUB_PRICE_DH, days: SUB_DAYS });
-      $("lockRechargeBtn").innerHTML = t("lockBtn");
-
-      $("lblName").textContent = t("lblName");
-      $("driverName").setAttribute("placeholder", t("phName"));
-      $("lblVehicle").textContent = t("lblVehicle");
-      $("lblCity").textContent = t("lblCity");
-      $("driverCityInput").setAttribute("placeholder", t("phCity"));
-      $("lblArea").textContent = t("lblArea");
-      $("driverAreaInput").setAttribute("placeholder", t("phArea"));
-      $("lblPhone").textContent = t("lblPhone");
-      $("driverPhone").setAttribute("placeholder", t("phPhone"));
-      $("autoFillHint").textContent = t("autoFillHint");
-      $("lblCIN").textContent = t("lblCIN");
-      $("driverCIN").setAttribute("placeholder", t("phCIN"));
-      $("cinPrivacy").textContent = t("cinPrivacy");
-      $("lblLocOpt").textContent = t("lblLocOpt");
-      $("driverLocText").textContent = t("locHelp");
-      $("driverLocBtn").innerHTML = t("useMyLoc");
-      $("lblPayMethods").textContent = t("lblPayMethods");
-      $("cashOnlyTxt").textContent = t("cashOnlyTxt");
-      $("registerBtn").textContent = t("registerBtn");
-
-      $("afterRegisterMsg").textContent = t("afterRegMsg");
-      $("checkStatusBtn").textContent = t("statusBtn");
-
-      $("driversTitle").textContent = t("driversTitle");
-      $("syncBadge").textContent = t("sync");
-      $("lblFilterCity").textContent = t("lblFilterCity");
-      $("filterCity").setAttribute("placeholder", t("phFilterCity"));
-      $("lblFilterArea").textContent = t("lblFilterArea");
-      $("filterArea").setAttribute("placeholder", t("phFilterArea"));
-      $("lblFilterVeh").textContent = t("lblFilterVeh");
-      $("filterVehicle").options[0].text = t("optAll");
-      $("filterVehicle").options[1].text = t("optCar");
-      $("filterVehicle").options[2].text = t("optBike");
-
-      $("lblSort").textContent = t("lblSort");
-      $("sortBy").options[0].text = t("sortNew");
-      $("sortBy").options[1].text = t("sortOld");
-      $("sortBy").options[2].text = t("sortActive");
-
-      $("refreshBtn").innerHTML = `${t("refresh")} <i class="fas fa-rotate mr-1"></i>`;
-
-      $("mapTitle").textContent = t("mapTitle");
-      $("mapSub").textContent = t("mapSub");
-      $("myLocBtn").innerHTML = t("myLoc");
-      $("mapFullBtn").innerHTML = t("zoom");
-      $("mapFsTitle").textContent = t("mapFsTitle");
-      $("mapExitBtn").innerHTML = t("exit");
-      $("mapClearBtn").textContent = t("clear");
-      $("mapExitFabBtn").textContent = t("exitBtn");
-
-      $("switchRoleBtn").innerHTML = (state.lang==="ar")
-        ? `تبديل الدور <i class="fas fa-shuffle mr-1"></i>`
-        : `Switch role <i class="fas fa-shuffle mr-1"></i>`;
-
-      renderFeed();
-      renderAdminIfOpen();
-      updatePills();
-      updateApiPillVisibility();
-    }
-
     /********************
-     * Badges translated
+     * Storage
      ********************/
-    function badge(status){
-      if(status === "active") return `<span class="pill bg-green-100 text-green-700 border-green-200">${escapeHtml(t("badge_active"))}</span>`;
-      if(status === "pending") return `<span class="pill bg-yellow-100 text-yellow-800 border-yellow-200">${escapeHtml(t("badge_pending"))}</span>`;
-      if(status === "expired") return `<span class="pill bg-red-100 text-red-700 border-red-200">${escapeHtml(t("badge_expired"))}</span>`;
-      return `<span class="pill bg-gray-100 text-gray-700">—</span>`;
+    function saveCache(){
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({ updatedAt: state.updatedAt, drivers: state.drivers }));
     }
-
-    /********************
-     * Base64URL (Unicode safe)
-     ********************/
-    function base64UrlEncodeUnicode(str){
-      const utf8 = new TextEncoder().encode(str);
-      let binary = "";
-      utf8.forEach(b => binary += String.fromCharCode(b));
-      const b64 = btoa(binary);
-      return b64.replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");
-    }
-
-    /********************
-     * JSONP request
-     ********************/
-    function jsonp(url){
-      return new Promise((resolve, reject)=>{
-        const cbName = "cb_" + Date.now() + "_" + Math.floor(Math.random()*1e6);
-        const script = document.createElement("script");
-        const timeout = setTimeout(()=>{
-          cleanup();
-          reject(new Error("JSONP timeout"));
-        }, 15000);
-
-        function cleanup(){
-          clearTimeout(timeout);
-          if(script && script.parentNode) script.parentNode.removeChild(script);
-          try{ delete window[cbName]; }catch(_){}
-        }
-
-        window[cbName] = (data)=>{
-          cleanup();
-          resolve(data);
-        };
-
-        const sep = url.includes("?") ? "&" : "?";
-        script.src = url + sep + "callback=" + cbName;
-        script.onerror = ()=>{
-          cleanup();
-          reject(new Error("JSONP error"));
-        };
-        document.body.appendChild(script);
-      });
-    }
-
-    async function api(action, params = {}, payloadObj = null){
-      if(!REMOTE_API_URL || REMOTE_API_URL.includes("PASTE_YOUR")){
-        throw new Error("REMOTE_API_URL not set");
-      }
-      const u = new URL(REMOTE_API_URL);
-      u.searchParams.set("action", action);
-
-      Object.entries(params||{}).forEach(([k,v])=>{
-        if(v === undefined || v === null || v === "") return;
-        u.searchParams.set(k, String(v));
-      });
-
-      if(payloadObj){
-        const payload = base64UrlEncodeUnicode(JSON.stringify(payloadObj));
-        u.searchParams.set("payload", payload);
-      }
-
-      return await jsonp(u.toString());
-    }
-
-    /********************
-     * Cache
-     ********************/
     function loadCache(){
       try{
-        const raw = localStorage.getItem(STORAGE_KEY);
-        if(!raw) return;
-        const obj = JSON.parse(raw);
-        if(obj && Array.isArray(obj.drivers)){
-          state.drivers = obj.drivers;
-          state.updatedAt = Number(obj.updatedAt||0);
-        }
+        const raw = JSON.parse(localStorage.getItem(STORAGE_KEY) || "null");
+        if(raw && Array.isArray(raw.drivers)) return raw;
       }catch(_){}
+      return null;
     }
 
-    function saveCache(){
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({
-        drivers: state.drivers,
-        updatedAt: state.updatedAt
-      }));
+    function loadRatings(){ try{ return JSON.parse(localStorage.getItem(RATINGS_KEY)||"{}"); }catch(_){ return {}; } }
+    function saveRatings(m){ localStorage.setItem(RATINGS_KEY, JSON.stringify(m||{})); }
+
+    function saveTrip(obj){ localStorage.setItem(TRIP_KEY, JSON.stringify(obj)); }
+    function loadTrip(){ try{ return JSON.parse(localStorage.getItem(TRIP_KEY)||"null"); }catch(_){ return null; } }
+
+    function saveFilters(obj){ localStorage.setItem(FILTERS_KEY, JSON.stringify(obj||{})); }
+    function loadFilters(){ try{ return JSON.parse(localStorage.getItem(FILTERS_KEY)||"{}"); }catch(_){ return {}; } }
+
+    /********************
+     * Remote Sync (GET/POST مثل الكود الأول)
+     ********************/
+    async function remoteGetState(){
+      if(!REMOTE_API_URL) return null;
+      try{
+        const res = await fetch(REMOTE_API_URL + (REMOTE_API_URL.includes("?") ? "&" : "?") + "t=" + Date.now(), { method:"GET" });
+        if(!res.ok) throw new Error("GET failed");
+        const data = await res.json();
+
+        // Accept: Array OR {drivers,updatedAt}
+        if(Array.isArray(data)) return { updatedAt: 0, drivers: data };
+        const drivers = Array.isArray(data.drivers) ? data.drivers : null;
+        if(!drivers) return null;
+        return { updatedAt: Number(data.updatedAt||0), drivers };
+      }catch(_){
+        return null;
+      }
     }
 
-    async function refreshRemote(){
-      const res = await api("list");
-      if(!res || !res.ok) throw new Error(res?.error || "API error");
-      state.drivers = res.drivers || [];
-      state.updatedAt = Number(res.updatedAt||0);
+    async function remoteSetState(drivers){
+      if(!REMOTE_API_URL) return false;
+      try{
+        const payload = { action:"set", updatedAt: Date.now(), drivers };
+        const res = await fetch(REMOTE_API_URL, {
+          method:"POST",
+          headers: { "Content-Type":"application/json" },
+          body: JSON.stringify(payload)
+        });
+        if(!res.ok) throw new Error("POST failed");
+        state.updatedAt = payload.updatedAt;
+        saveCache();
+        return true;
+      }catch(_){
+        return false;
+      }
+    }
+
+    function setApiPill(ok){
+      const pill = $("apiPill");
+      pill.classList.remove("hidden");
+      if(!REMOTE_API_URL){
+        pill.textContent = tr("apiErrSet");
+        pill.className = "hidden sm:inline-block text-[11px] px-3 py-1 rounded-full border bg-red-50 text-red-700";
+        return;
+      }
+      if(ok){
+        pill.textContent = tr("apiOk");
+        pill.className = "hidden sm:inline-block text-[11px] px-3 py-1 rounded-full border bg-green-50 text-green-700";
+      }else{
+        pill.textContent = tr("apiErr");
+        pill.className = "hidden sm:inline-block text-[11px] px-3 py-1 rounded-full border bg-yellow-50 text-yellow-800";
+      }
+    }
+
+    async function syncFromRemoteFirst(){
+      // remote first
+      const st = await remoteGetState();
+      if(st && Array.isArray(st.drivers)){
+        state.drivers = normalizeDrivers(st.drivers);
+        state.updatedAt = Number(st.updatedAt||0) || Date.now();
+        saveCache();
+        setApiPill(true);
+        return true;
+      }
+      // fallback cache
+      const cached = loadCache();
+      if(cached && Array.isArray(cached.drivers)){
+        state.drivers = normalizeDrivers(cached.drivers);
+        state.updatedAt = Number(cached.updatedAt||0);
+      } else {
+        state.drivers = []; // start empty
+        state.updatedAt = 0;
+      }
+      setApiPill(false);
+      return false;
+    }
+
+    async function remotePoll(){
+      const st = await remoteGetState();
+      if(!st || !Array.isArray(st.drivers)) { setApiPill(false); return; }
+      const incomingAt = Number(st.updatedAt||0);
+      if(incomingAt && incomingAt <= (state.updatedAt||0)) { setApiPill(true); return; }
+      state.drivers = normalizeDrivers(st.drivers);
+      state.updatedAt = incomingAt || Date.now();
       saveCache();
-      renderFeed();
-      renderAdminIfOpen();
-      updatePills();
+      setApiPill(true);
+      renderAll();
     }
 
-    function updatePills(){
-      $("countPill").textContent = t("countPill", { n: (state.drivers?.length || 0) });
-      $("updatedPill").textContent = t("updatedPill", { d: (state.updatedAt ? fmtDate(state.updatedAt) : "—") });
+    function normalizeDrivers(list){
+      return (list||[]).map(d => {
+        const dd = { ...d };
+        dd.id = dd.id || dd.phone || String(Math.random());
+        dd.phone = String(dd.phone||"");
+        dd.city = String(dd.city||"");
+        dd.area = String(dd.area||"");
+        dd.vehicle = String(dd.vehicle||"");
+        dd.name = String(dd.name||"");
+        dd.cin = String(dd.cin||"");
+        dd.createdAt = Number(dd.createdAt || dd.receiptSubmittedAt || Date.now());
+        dd.updatedAt = Number(dd.updatedAt || Date.now());
+        dd.subExpiresAt = Number(dd.subExpiresAt || 0);
+        dd.receiptStatus = dd.receiptStatus || (isActive(dd) ? "active" : "expired");
+        if(dd.lat !== undefined) dd.lat = Number(dd.lat);
+        if(dd.lon !== undefined) dd.lon = Number(dd.lon);
+        dd.ratingAvg = Number(dd.ratingAvg || 0);
+        dd.ratingCount = Number(dd.ratingCount || 0);
+        dd.pay = Array.isArray(dd.pay) ? dd.pay : (dd.pay ? [String(dd.pay)] : ["Cash"]);
+        return dd;
+      });
+    }
+
+    async function pushDrivers(){
+      saveCache();
+      const ok = await remoteSetState(state.drivers);
+      setApiPill(ok);
+      return ok;
     }
 
     /********************
-     * Cities
+     * Geo (Nominatim + OSRM) من الكود الأول
      ********************/
-    const MOROCCO_CITIES = [
-      "Casablanca","Rabat","Salé","Marrakech","Fès","Tanger","Agadir","Meknès",
-      "Oujda","Kénitra","Tétouan","Safi","El Jadida","Nador","Khouribga","Beni Mellal",
-      "Taza","Settat","Mohammedia","Laâyoune","Dakhla","Errachidia","Guelmim","Ouarzazate",
-      "Taroudant","Khemisset","Berrechid","Larache","Sidi Slimane","Taourirt","Ouezzane"
-    ];
-    function fillCities(){
-      const dl = $("citiesList");
-      dl.innerHTML = MOROCCO_CITIES.map(c=>`<option value="${escapeHtml(c)}"></option>`).join("");
+    function geoLang(){
+      return state.lang === "fr" ? "fr" : (state.lang === "en" ? "en" : "ar");
     }
 
-    /********************
-     * Area autocomplete
-     ********************/
-    let areaTimer = null;
-    async function areaSuggest(q, city){
-      const qq = (q||"").trim();
-      if(qq.length < 3) return [];
-      const query = city ? `${qq}, ${city}, Morocco` : `${qq}, Morocco`;
-      const url = new URL("https://nominatim.openstreetmap.org/search");
-      url.searchParams.set("format","json");
-      url.searchParams.set("limit","6");
-      url.searchParams.set("q", query);
-      const res = await fetch(url.toString(), { headers: { "Accept":"application/json" } });
+    async function nominatimSearch(query, limit=6){
+      const url = `https://nominatim.openstreetmap.org/search?format=json&limit=${limit}&countrycodes=ma&addressdetails=1&accept-language=${encodeURIComponent(geoLang())}&q=${encodeURIComponent(query)}`;
+      const res = await fetch(url);
+      if(!res.ok) throw new Error("Search failed");
       const data = await res.json();
-      return (data||[]).map(x=>({
-        title: x.display_name,
-        lat: Number(x.lat),
-        lon: Number(x.lon)
-      }));
+      return Array.isArray(data) ? data : [];
     }
 
-    function bindAreaAutocomplete(inputId, listId, onPick){
+    async function reverseGeocode(lat, lon){
+      const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${encodeURIComponent(lat)}&lon=${encodeURIComponent(lon)}&zoom=18&addressdetails=1&accept-language=${encodeURIComponent(geoLang())}`;
+      const res = await fetch(url);
+      if(!res.ok) throw new Error("Reverse failed");
+      const data = await res.json();
+      const addr = data.address || {};
+      return { display: data.display_name || "", addr };
+    }
+
+    function niceLabelFromAddress(addr){
+      const road = addr.road || addr.pedestrian || addr.footway || addr.path;
+      const neigh = addr.neighbourhood || addr.suburb || addr.quarter || addr.hamlet || addr.village;
+      const city = addr.city || addr.town || addr.municipality || addr.state_district || addr.county;
+      const parts = [];
+      if(road) parts.push(road);
+      if(neigh && (!road || neigh !== road)) parts.push(neigh);
+      if(city) parts.push(city);
+      return parts.filter(Boolean).join(state.lang === "ar" ? "، " : ", ");
+    }
+
+    async function osrmRoute(from, to){
+      const url = `https://router.project-osrm.org/route/v1/driving/${from.lon},${from.lat};${to.lon},${to.lat}?overview=false&alternatives=false&steps=false`;
+      const res = await fetch(url);
+      if(!res.ok) throw new Error("Routing failed");
+      const data = await res.json();
+      if(!data.routes || !data.routes[0]) throw new Error("No route found");
+      const r = data.routes[0];
+      return { distanceKm: r.distance/1000, durationMin: r.duration/60 };
+    }
+
+    function debounce(fn, wait=320){
+      let t;
+      return (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), wait); };
+    }
+
+    function attachAutocomplete({ inputId, listId, onPick }){
       const input = $(inputId);
       const list = $(listId);
+      let lastItems = [];
 
-      input.addEventListener("input", ()=>{
-        clearTimeout(areaTimer);
-        const city = $("driverCityInput")?.value || "";
-        areaTimer = setTimeout(async ()=>{
-          try{
-            const items = await areaSuggest(input.value, city);
-            if(!items.length){
-              list.style.display = "none";
-              list.innerHTML = "";
-              return;
-            }
-            list.innerHTML = items.map(it=>`
-              <div class="auto-item" data-lat="${it.lat}" data-lon="${it.lon}" data-title="${escapeHtml(it.title)}">
-                <b>${escapeHtml(it.title.split(",")[0] || it.title)}</b>
-                <span>${escapeHtml(it.title)}</span>
-              </div>
-            `).join("");
-            list.style.display = "block";
+      const closeList = () => { list.style.display = "none"; list.innerHTML = ""; lastItems = []; };
+      const openList = () => { if(list.innerHTML.trim()) list.style.display = "block"; };
 
-            Array.from(list.querySelectorAll(".auto-item")).forEach(el=>{
-              el.addEventListener("click", ()=>{
-                input.value = el.getAttribute("data-title") || "";
-                list.style.display = "none";
-                list.innerHTML = "";
-                onPick && onPick({
-                  title: input.value,
-                  lat: Number(el.getAttribute("data-lat")),
-                  lon: Number(el.getAttribute("data-lon"))
-                });
-              });
-            });
+      const render = (items) => {
+        lastItems = items;
+        if(!items.length){ closeList(); return; }
+        list.innerHTML = items.map((it, idx) => {
+          const addr = it.address || {};
+          const title = niceLabelFromAddress(addr) || it.display_name || "";
+          const sub = it.display_name || "";
+          return `
+            <div class="auto-item" data-idx="${idx}">
+              <b>${escapeHtml(title)}</b>
+              <span>${escapeHtml(sub)}</span>
+            </div>
+          `;
+        }).join("");
+        openList();
+      };
 
-          }catch(_){
-            list.style.display = "none";
-            list.innerHTML = "";
-          }
-        }, 350);
-      });
-
-      document.addEventListener("click", (e)=>{
-        if(!list.contains(e.target) && e.target !== input){
-          list.style.display = "none";
+      const doSearch = debounce(async () => {
+        const q = (input.value || "").trim();
+        if(q.length < 3){ closeList(); return; }
+        try{
+          const items = await nominatimSearch(q, 6);
+          render(items);
+        }catch(_){
+          closeList();
         }
-      });
-    }
+      }, 320);
 
-    /********************
-     * Roles
-     ********************/
-    function getRole(){ return localStorage.getItem(ROLE_KEY) || ""; }
-    function setRole(r){ localStorage.setItem(ROLE_KEY, r); }
+      input.addEventListener("input", doSearch);
+      input.addEventListener("focus", () => { if(list.innerHTML.trim()) openList(); });
 
-    function openRoleModal(){
-      $("roleModal").classList.remove("hidden");
-      $("roleModal").classList.add("flex");
-    }
-    function closeRoleModal(){
-      $("roleModal").classList.add("hidden");
-      $("roleModal").classList.remove("flex");
-    }
-
-    function applyRoleUI(){
-      const role = getRole();
-
-      if(role === "customer"){
-        $("registerSection").classList.add("hidden");
-        $("customerSection").classList.remove("hidden");
-        $("apiPill").classList.add("hidden"); // ✅ customers don't see API
-        $("goRegister").classList.add("hidden");
-      }else if(role === "driver"){
-        $("registerSection").classList.remove("hidden");
-        $("customerSection").classList.add("hidden");
-        $("goRegister").classList.remove("hidden");
-        updateApiPillVisibility();
-      }else{
-        $("registerSection").classList.add("hidden");
-        $("customerSection").classList.add("hidden");
-        $("apiPill").classList.add("hidden");
-        $("goRegister").classList.add("hidden");
-      }
-    }
-
-    function updateApiPillVisibility(){
-      const role = getRole();
-      if(role !== "driver"){
-        $("apiPill").classList.add("hidden");
-        return;
-      }
-      $("apiPill").textContent = state.apiStatusText || "API: —";
-      $("apiPill").classList.remove("hidden");
-    }
-
-    /********************
-     * Driver status
-     ********************/
-    function driverStatus(d){
-      const exp = Number(d.subExpiresAt||0);
-      const rs = String(d.receiptStatus||"").toLowerCase();
-      if(exp && exp > nowMs()) return "active";
-      if(rs === "pending") return "pending";
-      return "expired";
-    }
-
-    function remainingText(d){
-      const exp = Number(d.subExpiresAt||0);
-      if(!exp) return "—";
-      const diff = exp - nowMs();
-      if(diff <= 0) return t("ended");
-      const days = Math.floor(diff / (24*60*60*1000));
-      const hrs  = Math.floor((diff % (24*60*60*1000)) / (60*60*1000));
-      if(state.lang === "ar") return `${days} يوم ${hrs} س`;
-      if(state.lang === "fr") return `${days} j ${hrs} h`;
-      return `${days}d ${hrs}h`;
-    }
-
-    /********************
-     * Render feed
-     ********************/
-    function renderFeed(){
-      const feed = $("driversFeed");
-      if(!feed) return;
-
-      const city = ($("filterCity").value||"").trim().toLowerCase();
-      const area = ($("filterArea").value||"").trim().toLowerCase();
-      const veh  = ($("filterVehicle").value||"").trim();
-      const sortBy = $("sortBy").value;
-
-      let arr = [...(state.drivers||[])];
-
-      if(city) arr = arr.filter(d=> String(d.city||"").toLowerCase().includes(city));
-      if(area) arr = arr.filter(d=> String(d.area||"").toLowerCase().includes(area));
-      if(veh)  arr = arr.filter(d=> String(d.vehicle||"") === veh);
-
-      arr.sort((a,b)=>{
-        const aCreated = Number(a.createdAt||0);
-        const bCreated = Number(b.createdAt||0);
-        if(sortBy === "old") return aCreated - bCreated;
-        if(sortBy === "active"){
-          const as = driverStatus(a)==="active" ? 0 : 1;
-          const bs = driverStatus(b)==="active" ? 0 : 1;
-          if(as !== bs) return as - bs;
-          return bCreated - aCreated;
-        }
-        return bCreated - aCreated;
+      document.addEventListener("click", (e) => {
+        if(e.target.closest(`#${listId}`)) return;
+        if(e.target === input) return;
+        closeList();
       });
 
-      if(!arr.length){
-        feed.innerHTML = `
-          <div class="md:col-span-2 bg-white border rounded-3xl p-6 text-center text-gray-500">
-            ${escapeHtml(t("noDrivers"))}
-          </div>
-        `;
-        return;
-      }
+      list.addEventListener("click", (e) => {
+        const item = e.target.closest(".auto-item");
+        if(!item) return;
+        const idx = Number(item.getAttribute("data-idx"));
+        const it = lastItems[idx];
+        if(!it) return;
 
-      feed.innerHTML = arr.map(d=>{
-        const st = driverStatus(d);
-        const pay = Array.isArray(d.pay) ? d.pay : [];
-        const phone = normalizePhone(d.phone || d.id || "");
-        const waLink = phone ? `https://wa.me/${phone.replace(/^0/,"212")}` : "#";
-        const telLink = phone ? `tel:${phone}` : "#";
+        const addr = it.address || {};
+        const label = niceLabelFromAddress(addr) || it.display_name || input.value;
 
-        return `
-          <div class="bg-white border border-gray-100 rounded-3xl p-4 soft-shadow">
-            <div class="flex items-start justify-between gap-2">
-              <div>
-                <div class="font-black text-lg">${escapeHtml(d.name||"Driver")}</div>
-                <div class="text-xs text-gray-500 mt-1">
-                  <i class="fas fa-location-dot ml-1"></i>
-                  ${escapeHtml(d.city||"—")} — ${escapeHtml((d.area||"").split(",")[0] || d.area || "—")}
-                </div>
-              </div>
-              <div class="flex flex-col items-end gap-2">
-                ${badge(st)}
-                <span class="pill bg-gray-50 text-gray-700">${escapeHtml(d.vehicle||"—")}</span>
-              </div>
-            </div>
-
-            <div class="flex flex-wrap gap-2 mt-3">
-              ${(pay||[]).slice(0,4).map(p=>`<span class="pill bg-gray-50 text-gray-700">${escapeHtml(p)}</span>`).join("")}
-              ${(!pay || !pay.length) ? `<span class="pill bg-gray-50 text-gray-400">Pay: —</span>` : ``}
-            </div>
-
-            <div class="flex items-center justify-between gap-2 mt-4">
-              <div class="text-xs text-gray-500">
-                <i class="fas fa-hourglass-half ml-1"></i>
-                ${escapeHtml(t("remaining"))}: <b class="text-gray-700">${escapeHtml(remainingText(d))}</b>
-              </div>
-
-              <div class="flex gap-2">
-                <button class="px-3 py-2 rounded-2xl border font-black hover:bg-gray-50" title="${escapeHtml(t("showOnMap"))}"
-                        onclick="showDriverOnMap('${escapeHtml(d.id)}')">
-                  <i class="fas fa-map-location-dot"></i>
-                </button>
-
-                <a class="px-3 py-2 rounded-2xl border font-black hover:bg-gray-50" title="${escapeHtml(t("call"))}"
-                   href="${telLink}">
-                  <i class="fas fa-phone"></i>
-                </a>
-
-                <a class="px-3 py-2 rounded-2xl border font-black hover:bg-gray-50" title="${escapeHtml(t("whatsapp"))}"
-                   target="_blank" href="${waLink}">
-                  <i class="fab fa-whatsapp"></i>
-                </a>
-              </div>
-            </div>
-          </div>
-        `;
-      }).join("");
+        input.value = label;
+        closeList();
+        onPick && onPick({ label, lat: Number(it.lat), lon: Number(it.lon), full: it });
+      });
     }
 
     /********************
      * Map
      ********************/
+    let map, driversLayer, userMarker, tripFromMarker, tripToMarker;
+
     function initMap(){
-      state.map = L.map("map").setView([33.5731, -7.5898], 6);
-      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-        maxZoom: 19,
-        attribution: "&copy; OpenStreetMap"
-      }).addTo(state.map);
+      if(map) return;
+      map = L.map('map').setView([33.5731, -7.5898], 11);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap' }).addTo(map);
+      driversLayer = L.layerGroup().addTo(map);
     }
 
-    function clearMarkers(){
-      state.markers.forEach(m=>state.map.removeLayer(m));
-      state.markers = [];
-      state.selectedDriverId = null;
-    }
+    function renderMapMarkers(list){
+      if(!map || !driversLayer) return;
+      driversLayer.clearLayers();
 
-    window.showDriverOnMap = function(id){
-      const d = (state.drivers||[]).find(x=>String(x.id)===String(id));
-      if(!d) return;
-      const lat = Number(d.lat);
-      const lon = Number(d.lon);
-      if(!isFinite(lat) || !isFinite(lon)){
-        toast(t("toastNoLocDriver"));
-        return;
+      if(state.userPos){
+        if(!userMarker) userMarker = L.marker([state.userPos.lat, state.userPos.lon]).addTo(map);
+        else userMarker.setLatLng([state.userPos.lat, state.userPos.lon]);
+        userMarker.bindPopup(`<b>${escapeHtml(tr("userLoc"))}</b><br>${escapeHtml(state.userAddressText||"")}`);
+      } else {
+        if(userMarker){ map.removeLayer(userMarker); userMarker = null; }
       }
-      clearMarkers();
-      const m = L.marker([lat,lon]).addTo(state.map).bindPopup(`<b>${escapeHtml(d.name||"Driver")}</b><br>${escapeHtml(d.city||"")}`);
-      state.markers.push(m);
-      state.map.setView([lat,lon], 14);
-      m.openPopup();
-    }
 
-    async function locateMe(){
-      return new Promise((resolve, reject)=>{
-        if(!navigator.geolocation) return reject(new Error("No geolocation"));
-        navigator.geolocation.getCurrentPosition(pos=>{
-          resolve({ lat: pos.coords.latitude, lon: pos.coords.longitude });
-        }, err=>reject(err), { enableHighAccuracy:true, timeout:12000 });
+      if(state.tripPick?.from?.lat){
+        if(!tripFromMarker) tripFromMarker = L.marker([state.tripPick.from.lat, state.tripPick.from.lon]).addTo(map);
+        else tripFromMarker.setLatLng([state.tripPick.from.lat, state.tripPick.from.lon]);
+        tripFromMarker.bindPopup(`<b>From</b><br>${escapeHtml(state.tripPick.from.label||"")}`);
+      } else {
+        if(tripFromMarker){ map.removeLayer(tripFromMarker); tripFromMarker = null; }
+      }
+
+      if(state.tripPick?.to?.lat){
+        if(!tripToMarker) tripToMarker = L.marker([state.tripPick.to.lat, state.tripPick.to.lon]).addTo(map);
+        else tripToMarker.setLatLng([state.tripPick.to.lat, state.tripPick.to.lon]);
+        tripToMarker.bindPopup(`<b>To</b><br>${escapeHtml(state.tripPick.to.label||"")}`);
+      } else {
+        if(tripToMarker){ map.removeLayer(tripToMarker); tripToMarker = null; }
+      }
+
+      list.forEach(d => {
+        if(typeof d.lat === "number" && typeof d.lon === "number"){
+          const wa = `https://wa.me/212${String(d.phone||"").substring(1)}`;
+          const status = isActive(d) ? tr("badge_active") : (d.receiptStatus === "pending" ? tr("badge_pending") : tr("badge_expired"));
+          const popup = `
+            <div style="min-width:220px">
+              <b>${escapeHtml(d.name)}</b><br>
+              ${escapeHtml(d.city)}${d.area ? " • " + escapeHtml(d.area) : ""} • ${escapeHtml(d.vehicle)}<br>
+              <div style="margin-top:6px;font-size:12px"><b>${escapeHtml(status)}</b></div>
+              <div style="margin-top:8px;display:flex;gap:8px">
+                <a style="flex:1;text-align:center;padding:8px;border-radius:10px;background:#111;color:#fff;text-decoration:none"
+                   href="tel:${escapeHtml(d.phone)}"><i class="fas fa-phone"></i> ${escapeHtml(tr("call"))}</a>
+                <a style="flex:1;text-align:center;padding:8px;border-radius:10px;background:#d1fae5;color:#065f46;text-decoration:none"
+                   href="${wa}" target="_blank"><i class="fab fa-whatsapp"></i> ${escapeHtml(tr("whatsapp"))}</a>
+              </div>
+            </div>
+          `;
+          L.marker([d.lat, d.lon]).bindPopup(popup).addTo(driversLayer);
+        }
       });
     }
 
-    async function setMyLocationOnMap(){
+    function toggleMapFullscreen(on){
+      const wrap = $("mapWrap");
+      const willOn = (typeof on === "boolean") ? on : !wrap.classList.contains("map-fullscreen");
+      wrap.classList.toggle("map-fullscreen", willOn);
+      document.body.style.overflow = willOn ? "hidden" : "";
+      $("mapExitFabBtn").classList.toggle("hidden", !willOn);
+      setTimeout(() => map && map.invalidateSize && map.invalidateSize(), 250);
+    }
+
+    /********************
+     * Role
+     ********************/
+    function applyRole(){
+      const isDriver = state.role === "driver";
+      const isCustomer = state.role === "customer";
+
+      $("registerSection").classList.toggle("hidden", !isDriver);
+      $("customerSection").classList.toggle("hidden", !isCustomer);
+      $("goRegister").classList.toggle("hidden", !isDriver);
+
+      if(isCustomer) initMap();
+    }
+
+    function openRoleModal(){
+      $("roleModal").classList.remove("hidden");
+      $("roleModal").classList.add("flex");
+      document.body.style.overflow = "hidden";
+    }
+    function closeRoleModal(){
+      $("roleModal").classList.add("hidden");
+      $("roleModal").classList.remove("flex");
+      document.body.style.overflow = "";
+    }
+
+    /********************
+     * Language apply
+     ********************/
+    function applyLang(){
+      document.documentElement.lang = state.lang;
+      document.documentElement.dir = (state.lang === "ar") ? "rtl" : "ltr";
+      $("langSelect").value = state.lang;
+
+      $("adminBtnTxt").textContent = tr("adminBtn");
+      $("heroTitle").textContent = tr("heroTitle");
+      $("heroSub").textContent = tr("heroSub");
+      $("feat1S").textContent = tr("feat1S");
+      $("feat2S").textContent = tr("feat2S");
+      $("feat3S").textContent = tr("feat3S");
+
+      $("roleTitle").textContent = tr("roleTitle");
+      $("roleSub").innerHTML = tr("roleSub");
+      $("roleHint").textContent = tr("roleHint");
+      $("pickCustomer").innerHTML = `<i class="fas fa-person-walking ml-2"></i> ${tr("iAmCustomer")}`;
+      $("pickDriver").innerHTML = `<i class="fas fa-car-side ml-2"></i> ${tr("iAmDriver")}`;
+
+      $("regTitle").innerHTML = `<i class="fas fa-id-card text-red-600"></i> ${tr("regTitle")}`;
+      $("lblCity").textContent = tr("lblCity");
+      $("lblArea").textContent = tr("lblArea");
+      $("driverAreaHint").textContent = tr("driverAreaHint");
+      $("useMyLocTxt").textContent = tr("useMyLoc");
+      $("lockTitle").textContent = tr("lockTitle");
+      $("lockText").innerHTML = tr("lockText");
+      $("lockRechargeBtn").innerHTML = `<i class="fab fa-whatsapp ml-1"></i> ${tr("lockBtn")}`;
+
+      $("driversTitle").textContent = tr("driversTitle");
+      $("syncBadge").textContent = tr("sync");
+
+      // customer services
+      $("tripTitle").textContent = tr("tripTitle");
+      $("tripNote").textContent = tr("tripNote");
+      $("tripStatus").textContent = tr("ready");
+      $("calcTripTxt").textContent = tr("calcTrip");
+
+      $("userLocLbl").textContent = tr("userLoc");
+      if(!state.userPos) $("userAddress").textContent = tr("locNotEnabled");
+      $("userLocNote").textContent = tr("locNote");
+      $("enableLocTxt").textContent = tr("enableLoc");
+
+      $("nearToggle").textContent = tr("nearMe");
+
+      // admin texts
+      $("adminTitle").textContent = tr("adminTitle");
+      $("adminSub").textContent = tr("adminSub");
+      $("adminLoginTitle").textContent = tr("loginTitle");
+      $("adminLoginSub").textContent = tr("loginSub");
+      if($("adminLoginErr").classList.contains("hidden") === false) $("adminLoginErr").textContent = tr("passWrong");
+
+      // update API pill text
+      setApiPill(true);
+    }
+
+    /********************
+     * UI: Cities datalist + socials
+     ********************/
+    function buildCities(){
+      const dl = $("citiesList");
+      dl.innerHTML = MOROCCO_CITIES.map(c => `<option value="${escapeHtml(c)}"></option>`).join("");
+    }
+
+    function initSocials(){
+      $("navInstagram").href = SOCIAL_LINKS.instagram;
+      $("navFacebook").href = SOCIAL_LINKS.facebook;
+      $("footWa").href = SOCIAL_LINKS.whatsapp;
+    }
+
+    /********************
+     * Location
+     ********************/
+    function requestLocation(){
+      return new Promise((resolve, reject) => {
+        if(!navigator.geolocation) return reject(new Error("Geolocation not supported"));
+        navigator.geolocation.getCurrentPosition(resolve, reject, { enableHighAccuracy: true, timeout: 12000, maximumAge: 0 });
+      });
+    }
+
+    async function enableUserLocation(){
       try{
-        const loc = await locateMe();
-        state.myLoc = loc;
-        const m = L.circleMarker([loc.lat, loc.lon], { radius:8 }).addTo(state.map).bindPopup(t("myLocation"));
-        state.markers.push(m);
-        state.map.setView([loc.lat, loc.lon], 14);
-        m.openPopup();
+        $("userAddress").textContent = tr("locating");
+        const pos = await requestLocation();
+        state.userPos = { lat: pos.coords.latitude, lon: pos.coords.longitude };
+
+        try{
+          const r = await reverseGeocode(state.userPos.lat, state.userPos.lon);
+          const label = niceLabelFromAddress(r.addr) || r.display || tr("locating");
+          state.userAddressText = label;
+          $("userAddress").textContent = label;
+        }catch(_){
+          state.userAddressText = "Location set";
+          $("userAddress").textContent = state.userAddressText;
+        }
+
+        if(map) map.setView([state.userPos.lat, state.userPos.lon], 13);
+        renderAll();
       }catch(_){
-        toast(t("toastNoLoc"));
+        state.userPos = null;
+        state.userAddressText = "";
+        $("userAddress").textContent = tr("locNotEnabled");
+        renderAll();
+      }
+    }
+
+    async function enableDriverLocation(){
+      try{
+        $("driverLocText").textContent = tr("locating");
+        const pos = await requestLocation();
+        state.regDriverPos = { lat: pos.coords.latitude, lon: pos.coords.longitude };
+
+        try{
+          const r = await reverseGeocode(state.regDriverPos.lat, state.regDriverPos.lon);
+          const label = niceLabelFromAddress(r.addr) || r.display || "OK";
+          $("driverLocText").textContent = `✅ ${label}`;
+          // auto-fill area if empty
+          if(!($("driverAreaInput").value||"").trim()){
+            $("driverAreaInput").value = (r.addr.road || r.addr.neighbourhood || r.addr.suburb || label || "").toString().trim();
+          }
+        }catch(_){
+          $("driverLocText").textContent = `✅ ${state.regDriverPos.lat.toFixed(5)}, ${state.regDriverPos.lon.toFixed(5)}`;
+        }
+      }catch(_){
+        state.regDriverPos = null;
+        $("driverLocText").textContent = $("driverLocText").getAttribute("data-default") || "—";
       }
     }
 
     /********************
-     * Toast / Note
+     * Trip (from الكود الأول)
      ********************/
-    function noteOk(msg){
-      const n = $("formNote");
-      n.className = "mb-4 text-sm p-3 rounded-2xl border border-green-200 bg-green-50 text-green-800";
-      n.textContent = msg;
-      n.classList.remove("hidden");
-      setTimeout(()=>n.classList.add("hidden"), 6000);
+    function setTripStatus(text, kind){
+      const el = $("tripStatus");
+      el.textContent = text;
+      el.className = "text-xs px-3 py-1 rounded-full border";
+      if(kind === "ok") el.classList.add("bg-green-50","text-green-700","border-green-200");
+      else if(kind === "loading") el.classList.add("bg-blue-50","text-blue-700","border-blue-200");
+      else if(kind === "error") el.classList.add("bg-red-50","text-red-700","border-red-200");
+      else el.classList.add("bg-white","text-gray-500","border-gray-200");
     }
-    function noteErr(msg){
-      const n = $("formNote");
-      n.className = "mb-4 text-sm p-3 rounded-2xl border border-red-200 bg-red-50 text-red-700";
-      n.textContent = msg;
-      n.classList.remove("hidden");
-      setTimeout(()=>n.classList.add("hidden"), 7000);
+    function showTripError(msg){ $("tripErr").textContent = msg; $("tripErr").classList.remove("hidden"); }
+    function hideTripError(){ $("tripErr").textContent = ""; $("tripErr").classList.add("hidden"); }
+
+    function showTripResult(route){
+      $("tripResult").classList.remove("hidden");
+      $("tripKm").textContent = `${route.distanceKm.toFixed(1)} KM`;
+      $("tripTime").textContent = `${Math.round(route.durationMin)} min`;
+      $("tripPriceCar").textContent = `${priceForTrip(route.distanceKm, route.durationMin, "سيارة")} DH`;
+      $("tripPriceMoto").textContent = `${priceForTrip(route.distanceKm, route.durationMin, "دراجة")} DH`;
     }
-    function toast(msg){ noteErr(msg); }
+
+    async function calcTrip(){
+      hideTripError();
+      const fromText = ($("tripFrom").value||"").trim();
+      const toText = ($("tripTo").value||"").trim();
+      if(!fromText || !toText) return showTripError(tr("fillFromTo"));
+
+      try{
+        setTripStatus("...", "loading");
+        $("calcTripBtn").disabled = true;
+        $("calcTripBtn").classList.add("opacity-60");
+
+        const fromCoord = state.tripPick.from?.lat ? { lat: state.tripPick.from.lat, lon: state.tripPick.from.lon } : null;
+        const toCoord   = state.tripPick.to?.lat ? { lat: state.tripPick.to.lat, lon: state.tripPick.to.lon } : null;
+
+        const finalFrom = fromCoord || (await (async ()=>{
+          const items = await nominatimSearch(fromText, 1);
+          if(!items[0]) throw new Error("From not found");
+          return { lat:Number(items[0].lat), lon:Number(items[0].lon) };
+        })());
+
+        const finalTo = toCoord || (await (async ()=>{
+          const items = await nominatimSearch(toText, 1);
+          if(!items[0]) throw new Error("To not found");
+          return { lat:Number(items[0].lat), lon:Number(items[0].lon) };
+        })());
+
+        const route = await osrmRoute(finalFrom, finalTo);
+
+        state.trip = { ...route, fromText, toText, at: Date.now() };
+        saveTrip({ trip: state.trip, tripPick: state.tripPick });
+        showTripResult(route);
+        setTripStatus("OK", "ok");
+
+        // Center map
+        const midLat = (finalFrom.lat + finalTo.lat)/2;
+        const midLon = (finalFrom.lon + finalTo.lon)/2;
+        if(map) map.setView([midLat, midLon], 12);
+
+        renderAll();
+      }catch(_){
+        setTripStatus("ERR", "error");
+        showTripError(tr("routeFailed"));
+      }finally{
+        $("calcTripBtn").disabled = false;
+        $("calcTripBtn").classList.remove("opacity-60");
+      }
+    }
 
     /********************
-     * Validation
+     * Filters
      ********************/
-    function setErr(id, msg){
-      const el = $(id);
-      if(!el) return;
-      if(msg){
-        el.textContent = msg;
-        el.classList.remove("hidden");
+    function getFilters(){
+      const raw = loadFilters();
+      return {
+        city: raw.city || "",
+        area: raw.area || "",
+        vehicle: raw.vehicle || "",
+        sortBy: raw.sortBy || "new",
+        q: raw.q || "",
+        near: !!raw.near,
+        radiusKm: raw.radiusKm || "5"
+      };
+    }
+    function setFilters(p){
+      const cur = getFilters();
+      const next = { ...cur, ...p };
+      saveFilters(next);
+      return next;
+    }
+    function normalizeStr(s){ return String(s||"").trim().toLowerCase(); }
+
+    function computeFilteredDrivers(){
+      const f = getFilters();
+      const city = normalizeStr(f.city);
+      const area = normalizeStr(f.area);
+      const vehicle = f.vehicle || "";
+      const q = normalizeStr(f.q);
+      const near = !!f.near;
+      const radiusKm = Number(f.radiusKm || 5);
+
+      // ✅ المطلوب: الزبون يشوف جميع السائقين (الجدد والقدامى) بدون حجب
+      let list = state.drivers.slice();
+
+      if(city) list = list.filter(d => normalizeStr(d.city).includes(city));
+      if(area) list = list.filter(d => normalizeStr(d.area).includes(area));
+      if(vehicle) list = list.filter(d => d.vehicle === vehicle);
+      if(q){
+        list = list.filter(d => {
+          const hay = `${d.name} ${d.phone} ${d.city} ${d.area} ${d.vehicle}`.toLowerCase();
+          return hay.includes(q);
+        });
+      }
+
+      if(near && state.userPos){
+        list = list
+          .map(d => {
+            const km = (typeof d.lat === "number" && typeof d.lon === "number")
+              ? distanceKm(state.userPos.lat, state.userPos.lon, d.lat, d.lon)
+              : Infinity;
+            return { ...d, _nearKm: km };
+          })
+          .filter(d => d._nearKm <= radiusKm)
+          .sort((a,b) => (a._nearKm||0) - (b._nearKm||0));
+      }
+
+      // sort
+      if(f.sortBy === "old"){
+        list.sort((a,b) => (a.createdAt||0) - (b.createdAt||0));
+      } else if(f.sortBy === "active"){
+        list.sort((a,b) => {
+          const aa = isActive(a) ? 0 : 1;
+          const bb = isActive(b) ? 0 : 1;
+          if(aa !== bb) return aa - bb;
+          return (b.createdAt||0) - (a.createdAt||0);
+        });
       } else {
-        el.textContent = "";
-        el.classList.add("hidden");
+        list.sort((a,b) => (b.createdAt||0) - (a.createdAt||0));
+      }
+
+      return list;
+    }
+
+    /********************
+     * Rating (من الكود الأول)
+     ********************/
+    function renderStarsStatic(avg){
+      avg = Number(avg||0);
+      const full = Math.floor(avg);
+      const half = (avg - full) >= 0.5;
+      let html = "";
+      for(let i=1;i<=5;i++){
+        if(i <= full) html += `<i class="fas fa-star" style="color:#f59e0b"></i>`;
+        else if(i === full+1 && half) html += `<i class="fas fa-star-half-stroke" style="color:#f59e0b"></i>`;
+        else html += `<i class="far fa-star" style="color:#d1d5db"></i>`;
+      }
+      return html;
+    }
+
+    function renderStarsInteractive(driverId, currentUserRating){
+      let html = `<div class="flex items-center gap-1">`;
+      for(let i=1;i<=5;i++){
+        const filled = (currentUserRating && i <= currentUserRating);
+        html += `
+          <span class="star cursor-pointer" data-rate="${i}" data-driver="${escapeHtml(driverId)}" title="${escapeHtml(i)}">
+            <i class="${filled ? "fas" : "far"} fa-star" style="color:${filled ? "#f59e0b" : "#d1d5db"}"></i>
+          </span>
+        `;
+      }
+      html += `</div>`;
+      return html;
+    }
+
+    function attachRatingEvents(){
+      document.querySelectorAll(".star").forEach(el=>{
+        el.onclick = async () => {
+          const driverId = el.getAttribute("data-driver");
+          const rate = Number(el.getAttribute("data-rate"));
+          if(!driverId || !rate) return;
+
+          const map = loadRatings();
+          map[driverId] = rate;
+          saveRatings(map);
+
+          const idx = state.drivers.findIndex(d => d.id === driverId);
+          if(idx >= 0){
+            const d = state.drivers[idx];
+            const oldCount = Number(d.ratingCount || 0);
+            const oldAvg = Number(d.ratingAvg || 0);
+            const newAvg = (oldAvg * oldCount + rate) / (oldCount + 1);
+            d.ratingAvg = Math.round(newAvg * 10) / 10;
+            d.ratingCount = oldCount + 1;
+            d.updatedAt = Date.now();
+            state.drivers[idx] = d;
+            await pushDrivers();
+          }
+          renderAll();
+        };
+      });
+    }
+
+    /********************
+     * Render Drivers (cards + map)
+     ********************/
+    function statusBadge(d){
+      const active = isActive(d);
+      const pending = d.receiptStatus === "pending" && !active;
+      const expired = !active && !pending;
+
+      const txt = active ? tr("badge_active") : (pending ? tr("badge_pending") : tr("badge_expired"));
+      const cls = active ? "bg-green-50 text-green-700 border-green-200" : (pending ? "bg-yellow-50 text-yellow-800 border-yellow-200" : "bg-red-50 text-red-700 border-red-200");
+      return `<span class="px-2 py-1 rounded-full border text-[11px] font-black ${cls}">${escapeHtml(txt)}</span>`;
+    }
+
+    function renderDriverCard(d){
+      const wa = `https://wa.me/212${String(d.phone||"").substring(1)}`;
+      const ratingsMap = loadRatings();
+      const currentUserRating = ratingsMap[d.id] || 0;
+
+      // subscription line
+      let subLine = "";
+      if(isActive(d)){
+        const rem = formatRemaining(Number(d.subExpiresAt) - Date.now());
+        subLine = `<div class="text-[11px] text-gray-500 font-black mt-1">${escapeHtml(tr("remaining"))}: ${rem.days}d ${rem.hours}h ${rem.mins}m</div>`;
+      }else{
+        subLine = `<div class="text-[11px] text-gray-400 font-black mt-1">${escapeHtml(tr("ended"))}</div>`;
+      }
+
+      let distHtml = "";
+      if(state.userPos && typeof d.lat === "number" && typeof d.lon === "number"){
+        const km = distanceKm(state.userPos.lat, state.userPos.lon, d.lat, d.lon);
+        const eta = estimateEtaToPickupMin(km, d.vehicle);
+        distHtml = `
+          <div class="mt-2 text-[11px] text-gray-500 font-black">
+            <i class="fas fa-location-dot ml-1 text-gray-300"></i>
+            ${km.toFixed(1)} KM • ${escapeHtml(tr("eta"))} ${eta} min
+          </div>
+        `;
+      }
+
+      const showMapBtn = (typeof d.lat === "number" && typeof d.lon === "number")
+        ? `<button class="w-full text-center bg-white border py-3 rounded-xl font-black text-sm hover:bg-gray-50 showOnMap" data-lat="${d.lat}" data-lon="${d.lon}">
+             <i class="fas fa-map-location-dot ml-1"></i> ${escapeHtml(tr("showOnMap"))}
+           </button>`
+        : `<button class="w-full text-center bg-white border py-3 rounded-xl font-black text-sm opacity-60 cursor-not-allowed" disabled>
+             <i class="fas fa-map-location-dot ml-1"></i> ${escapeHtml(tr("showOnMap"))}
+           </button>`;
+
+      return `
+        <div class="bg-white border border-gray-100 rounded-3xl p-4 soft-shadow">
+          <div class="flex items-start justify-between gap-3">
+            <div>
+              <div class="text-lg font-black text-gray-900">${escapeHtml(d.name || "—")}</div>
+              <div class="text-xs text-gray-500 font-black mt-1">
+                ${escapeHtml(d.city||"")}${d.area ? " • " + escapeHtml(d.area) : ""} • ${escapeHtml(d.vehicle||"")}
+              </div>
+              <div class="mt-2 flex items-center gap-2">
+                <div>${renderStarsStatic(d.ratingAvg||0)}</div>
+                <span class="text-[11px] text-gray-500 font-black">(${Number(d.ratingCount||0)})</span>
+                ${statusBadge(d)}
+              </div>
+              ${subLine}
+              ${distHtml}
+            </div>
+
+            <div class="text-right">
+              <div class="text-[10px] text-gray-400 font-black mb-1">Rate</div>
+              ${renderStarsInteractive(d.id, currentUserRating)}
+            </div>
+          </div>
+
+          <div class="mt-4 grid grid-cols-2 gap-2">
+            <a class="w-full text-center bg-gray-900 text-white py-3 rounded-xl font-black text-sm hover:opacity-90"
+               href="tel:${escapeHtml(d.phone||"")}"><i class="fas fa-phone ml-1"></i> ${escapeHtml(tr("call"))}</a>
+            <a class="w-full text-center bg-green-600 text-white py-3 rounded-xl font-black text-sm hover:bg-green-700"
+               href="${wa}" target="_blank"><i class="fab fa-whatsapp ml-1"></i> ${escapeHtml(tr("whatsapp"))}</a>
+          </div>
+
+          <div class="mt-2">
+            ${showMapBtn}
+          </div>
+        </div>
+      `;
+    }
+
+    function bindShowOnMapButtons(){
+      document.querySelectorAll(".showOnMap").forEach(btn=>{
+        btn.onclick = () => {
+          const lat = Number(btn.getAttribute("data-lat"));
+          const lon = Number(btn.getAttribute("data-lon"));
+          if(!map || !isFinite(lat) || !isFinite(lon)) return;
+          map.setView([lat, lon], 15);
+          toggleMapFullscreen(true);
+        };
+      });
+    }
+
+    /********************
+     * Driver lock UI
+     ********************/
+    function enforceDriverLockUI(){
+      const lastPhone = localStorage.getItem(LAST_DRIVER_PHONE) || "";
+      const p = normalizePhone(lastPhone);
+      if(!p){
+        $("driverLockOverlay").classList.remove("show");
+        return;
+      }
+      const d = state.drivers.find(x => normalizePhone(x.phone) === p) || null;
+      if(d && !isActive(d)){
+        $("driverLockOverlay").classList.add("show");
+      }else{
+        $("driverLockOverlay").classList.remove("show");
       }
     }
 
-    function validateDriverForm(){
-      const name = $("driverName").value.trim();
-      const city = $("driverCityInput").value.trim();
-      const area = $("driverAreaInput").value.trim();
-      const phone= normalizePhone($("driverPhone").value);
-      const cin  = $("driverCIN").value.trim();
+    /********************
+     * Register / Auto-fill
+     ********************/
+    function setFieldErr(id, msg){
+      const el = $(id);
+      el.textContent = msg;
+      el.classList.toggle("hidden", !msg);
+    }
+
+    function validateRegister(){
+      setFieldErr("nameErr", "");
+      setFieldErr("cityErr", "");
+      setFieldErr("areaErr", "");
+      setFieldErr("phoneErr", "");
+      setFieldErr("cinErr", "");
+
+      const name = ($("driverName").value||"").trim();
+      const city = ($("driverCityInput").value||"").trim();
+      const area = ($("driverAreaInput").value||"").trim();
+      const phone = normalizePhone($("driverPhone").value||"");
+      const cin = normalizeCIN($("driverCIN").value||"");
 
       let ok = true;
-      setErr("nameErr","");
-      setErr("cityErr","");
-      setErr("areaErr","");
-      setErr("phoneErr","");
-      setErr("cinErr","");
+      if(name.length < 3){ setFieldErr("nameErr", "دخل اسم صحيح"); ok = false; }
+      if(!city){ setFieldErr("cityErr", "دخل المدينة"); ok = false; }
+      if(area.length < 2){ setFieldErr("areaErr", "دخل الحي/الشارع"); ok = false; }
+      if(!isValidMoroccanPhone(phone)){ setFieldErr("phoneErr", "دخل رقم صحيح"); ok = false; }
+      if(!isValidCIN(cin)){ setFieldErr("cinErr", "دخل CIN صحيح"); ok = false; }
 
-      if(name.length < 3){ setErr("nameErr", t("errName")); ok=false; }
-      if(city.length < 2){ setErr("cityErr", t("errCity")); ok=false; }
-      if(area.length < 2){ setErr("areaErr", t("errArea")); ok=false; }
-      if(phone.length < 8){ setErr("phoneErr", t("errPhone")); ok=false; }
-      if(cin.length < 4){ setErr("cinErr", t("errCIN")); ok=false; }
-
-      return ok;
+      if(!ok) return null;
+      return { name, city, area, phone, cin };
     }
 
-    function selectedPayMethods(){
-      return ["Cash"]; // ✅ Cash only
-    }
-
-    /********************
-     * WhatsApp Message (Cash only)
-     ********************/
-    function waAdminLink(text){
-      const url = new URL("https://wa.me/" + PLATFORM_WHATSAPP_NUMBER);
-      url.searchParams.set("text", text);
-      return url.toString();
-    }
-
-    function openReceiptWhatsApp(driver){
-      const msgEn =
-`Hello Admin TAWSILA.ma 👋
-Activation request ✅
-
-Name: ${driver.name}
-Phone: ${driver.phone}
-CIN: ${driver.cin}
-City: ${driver.city}
-Area: ${driver.area}
-Vehicle: ${driver.vehicle}
-
-Price: ${SUB_PRICE_DH} DH / ${SUB_DAYS} days
-Payment: Cash
-
-(Please check the receipt here to activate)`;
-
-      const msgAr =
-`سلام Admin TAWSILA.ma 👋
-بغيت نفعل الاشتراك ديالي ✅
-
-الاسم: ${driver.name}
-الهاتف: ${driver.phone}
-CIN: ${driver.cin}
-المدينة: ${driver.city}
-الحي: ${driver.area}
-المركبة: ${driver.vehicle}
-
-الثمن: ${SUB_PRICE_DH} درهم / ${SUB_DAYS} أيام
-طريقة الأداء: Cash
-
-(رسل لي الوصل هنا باش تفعّلو ليا)`;
-
-      const msgFr =
-`Salut Admin TAWSILA.ma 👋
-Demande d’activation ✅
-
-Nom: ${driver.name}
-Téléphone: ${driver.phone}
-CIN: ${driver.cin}
-Ville: ${driver.city}
-Quartier: ${driver.area}
-Véhicule: ${driver.vehicle}
-
-Prix: ${SUB_PRICE_DH} DH / ${SUB_DAYS} jours
-Paiement: Cash
-
-(Envoie le reçu ici pour activer)`;
-
-      const finalMsg = state.lang === "ar" ? msgAr : (state.lang === "fr" ? msgFr : msgEn);
-      window.open(waAdminLink(finalMsg), "_blank");
-    }
-
-    /********************
-     * Driver Auto-fill by phone
-     ********************/
-    let driverDraftLoc = null;
-    let phoneAutoTimer = null;
-
-    async function tryAutoFillByPhone(phone){
+    function findByPhone(phone){
       const p = normalizePhone(phone);
-      if(!p || p.length < 8) return;
-
-      try{
-        const res = await api("get", { id: p });
-        if(res && res.ok && res.driver){
-          const d = res.driver;
-
-          $("driverName").value = d.name || $("driverName").value;
-          $("vehicleType").value = d.vehicle || $("vehicleType").value;
-          $("driverCityInput").value = d.city || $("driverCityInput").value;
-          $("driverAreaInput").value = d.area || $("driverAreaInput").value;
-          $("driverCIN").value = (d.cin || $("driverCIN").value || "").toUpperCase();
-
-          if(isFinite(Number(d.lat)) && isFinite(Number(d.lon))){
-            driverDraftLoc = { lat: Number(d.lat), lon: Number(d.lon) };
-            $("driverLocText").textContent = `✅ ${driverDraftLoc.lat.toFixed(5)}, ${driverDraftLoc.lon.toFixed(5)}`;
-          }
-
-          const st = driverStatus(d);
-          if(st !== "active"){
-            $("driverLockOverlay").classList.add("show");
-          }else{
-            $("driverLockOverlay").classList.remove("show");
-          }
-
-          noteOk(t("loadedAuto"));
-        }
-      }catch(_){}
+      return state.drivers.find(d => normalizePhone(d.phone) === p) || null;
     }
 
-    function bindPhoneAutoFill(){
-      const inp = $("driverPhone");
-      inp.addEventListener("input", ()=>{
-        clearTimeout(phoneAutoTimer);
-        phoneAutoTimer = setTimeout(()=>{
-          const p = normalizePhone(inp.value);
-          if(p.length >= 8){
-            localStorage.setItem(LAST_DRIVER_PHONE, p);
-            tryAutoFillByPhone(p);
-          }
-        }, 450);
-      });
+    function autoFillByPhone(){
+      const phone = normalizePhone($("driverPhone").value||"");
+      if(!isValidMoroccanPhone(phone)) return;
+      const d = findByPhone(phone);
+      if(!d) return;
 
-      inp.addEventListener("blur", ()=>{
-        const p = normalizePhone(inp.value);
-        if(p.length >= 8){
-          localStorage.setItem(LAST_DRIVER_PHONE, p);
-          tryAutoFillByPhone(p);
-        }
-      });
+      $("driverName").value = d.name || "";
+      $("driverCityInput").value = d.city || "";
+      $("driverAreaInput").value = d.area || "";
+      $("vehicleType").value = d.vehicle || "سيارة";
+      $("driverCIN").value = d.cin || "";
+      toastNote("success", "لقينا حسابك ✅ جبدنا بياناتك أوتوماتيك.");
     }
 
-    /********************
-     * ✅ Status button after register
-     ********************/
-    async function checkMyStatus(){
-      const phone = normalizePhone($("driverPhone").value) || (localStorage.getItem(LAST_DRIVER_PHONE) || "");
-      if(!phone){
-        $("statusResult").textContent = t("statusNeedPhone");
-        return;
-      }
-      try{
-        const res = await api("get", { id: phone });
-        if(!res || !res.ok) throw new Error(res?.error || "API error");
-        const d = res.driver;
-        if(!d){
-          $("statusResult").textContent = t("statusNeedPhone");
-          return;
-        }
-        const st = driverStatus(d);
-        if(st === "pending"){
-          $("statusResult").textContent = `${t("statusPending")} — ${t("statusRemaining", { r: remainingText(d) })}`;
-          $("driverLockOverlay").classList.add("show");
-        }else if(st === "active"){
-          $("statusResult").textContent = `${t("statusActive")} — ${t("statusRemaining", { r: remainingText(d) })}`;
-          $("driverLockOverlay").classList.remove("show");
-        }else{
-          $("statusResult").textContent = `${t("statusExpired")} — ${t("statusRemaining", { r: remainingText(d) })}`;
-          $("driverLockOverlay").classList.add("show");
-        }
-      }catch(err){
-        $("statusResult").textContent = (state.lang==="ar" ? "تعذر جلب الحالة." : "Couldn't fetch status.");
-      }
-    }
-
-    /********************
-     * Register driver -> Remote upsert
-     ********************/
     async function registerDriver(){
-      if(!validateDriverForm()) return;
+      const v = validateRegister();
+      if(!v) return;
 
-      const driver = {
-        id: normalizePhone($("driverPhone").value),
-        name: $("driverName").value.trim(),
-        vehicle: $("vehicleType").value,
-        phone: normalizePhone($("driverPhone").value),
-        city: $("driverCityInput").value.trim(),
-        area: $("driverAreaInput").value.trim(),
-        pay: selectedPayMethods(),
-        cin: $("driverCIN").value.trim().toUpperCase(),
-        lat: driverDraftLoc?.lat,
-        lon: driverDraftLoc?.lon,
-        receiptStatus: "pending",
-        receiptSubmittedAt: nowMs(),
-        subExpiresAt: 0
-      };
+      const vehicle = ($("vehicleType").value||"").trim();
+      const lat = state.regDriverPos?.lat;
+      const lon = state.regDriverPos?.lon;
 
-      try{
-        const res = await api("upsert", {}, driver);
-        if(!res || !res.ok) throw new Error(res?.error || "API error");
+      const existing = findByPhone(v.phone);
+      let d;
 
-        localStorage.setItem(LAST_DRIVER_PHONE, driver.phone);
+      if(existing){
+        d = existing;
+        d.name = v.name;
+        d.city = v.city;
+        d.area = v.area;
+        d.vehicle = vehicle;
+        d.cin = v.cin;
+        d.pay = ["Cash"];
+        if(typeof lat === "number" && typeof lon === "number"){ d.lat = lat; d.lon = lon; }
+        d.updatedAt = Date.now();
+      }else{
+        d = {
+          id: v.phone,
+          name: v.name,
+          phone: v.phone,
+          city: v.city,
+          area: v.area,
+          vehicle,
+          cin: v.cin,
+          pay:["Cash"],
+          lat: (typeof lat === "number") ? lat : undefined,
+          lon: (typeof lon === "number") ? lon : undefined,
+          createdAt: Date.now(),
+          updatedAt: Date.now(),
+          ratingAvg: 5.0,
+          ratingCount: 0,
+          subExpiresAt: 0,
+          receiptStatus: "pending",
+          receiptSubmittedAt: Date.now()
+        };
+        state.drivers.unshift(d);
+      }
 
-        // ✅ show message + status button
-        $("afterRegisterBox").classList.remove("hidden");
-        $("afterRegisterMsg").textContent = t("afterRegMsg");
-        $("statusResult").textContent = "";
+      d.receiptStatus = "pending";
+      d.receiptSubmittedAt = Date.now();
 
-        noteOk(t("regOk"));
-        await refreshRemote();
+      localStorage.setItem(LAST_DRIVER_PHONE, v.phone);
 
-        // ✅ still opens WhatsApp to send receipt (same button)
-        openReceiptWhatsApp(driver);
-      }catch(err){
-        noteErr(t("regErr") + (err.message||err));
+      await pushDrivers();
+
+      $("afterRegisterBox").classList.remove("hidden");
+      toastNote("success", "تسجلتي ✅ دابا غادي يتحل WhatsApp باش ترسل الوصل للإدارة.");
+
+      // Open WhatsApp to admin (message contains all driver info + city/area)
+      const msg =
+`TAWSILA.ma — Activation
+
+Name: ${d.name}
+Phone: ${d.phone}
+City: ${d.city}
+Area: ${d.area}
+Vehicle: ${d.vehicle}
+CIN: ${d.cin}
+
+Subscription: ${SUB_PRICE_DH} DH / ${SUB_DAYS} days
+
+(Please attach receipt photo)`;
+
+      window.open(waAdminLink(msg), "_blank");
+
+      enforceDriverLockUI();
+      renderAll();
+    }
+
+    /********************
+     * Status check
+     ********************/
+    function checkStatus(){
+      const phone = normalizePhone($("driverPhone").value||"");
+      if(!phone) { $("statusResult").textContent = tr("statusNeedPhone"); return; }
+      const d = findByPhone(phone);
+      if(!d) { $("statusResult").textContent = "Not found"; return; }
+
+      if(isActive(d)){
+        const rem = formatRemaining(Number(d.subExpiresAt) - Date.now());
+        $("statusResult").textContent = tr("statusActive") + " — " + trFmt("statusRemaining", { r: `${rem.days}d ${rem.hours}h ${rem.mins}m` });
+      }else if(d.receiptStatus === "pending"){
+        $("statusResult").textContent = tr("statusPending");
+      }else{
+        $("statusResult").textContent = tr("statusExpired");
       }
     }
 
     /********************
-     * Admin (password required every time)
+     * Admin
      ********************/
-    function openAdmin(){
-      state.adminAuthed = false;
-      $("adminPass").value = "";
-      $("adminLoginErr").classList.add("hidden");
-
+    function openAdminModal(){
       $("adminModal").classList.remove("hidden");
       $("adminModal").classList.add("flex");
-
+      document.body.style.overflow = "hidden";
       $("adminLoginBox").classList.remove("hidden");
       $("adminPanel").classList.add("hidden");
+      $("adminLoginErr").classList.add("hidden");
+      $("adminPass").value = "";
+      $("adminPass").focus();
     }
 
-    function closeAdmin(){
-      state.adminAuthed = false;
+    function closeAdminModal(){
       $("adminModal").classList.add("hidden");
       $("adminModal").classList.remove("flex");
-      $("adminPass").value = "";
-      $("adminLoginErr").classList.add("hidden");
-      $("adminLoginBox").classList.remove("hidden");
-      $("adminPanel").classList.add("hidden");
+      document.body.style.overflow = "";
     }
 
-    function renderAdminIfOpen(){
-      if(!$("adminModal").classList.contains("hidden") && state.adminAuthed){
-        renderAdmin();
+    function adminLogin(){
+      const pass = $("adminPass").value || "";
+      if(pass !== ADMIN_PASSWORD){
+        $("adminLoginErr").textContent = tr("passWrong");
+        $("adminLoginErr").classList.remove("hidden");
+        return;
       }
+      state.adminLogged = true;
+      $("adminLoginBox").classList.add("hidden");
+      $("adminPanel").classList.remove("hidden");
+      renderAdmin();
+    }
+
+    function adminLogout(){
+      state.adminLogged = false;
+      $("adminLoginBox").classList.remove("hidden");
+      $("adminPanel").classList.add("hidden");
+      $("adminPass").value = "";
+    }
+
+    function adminKpis(){
+      const total = state.drivers.length;
+      const active = state.drivers.filter(isActive).length;
+      const pending = state.drivers.filter(d => d.receiptStatus === "pending" && !isActive(d)).length;
+      $("kpiTotal").textContent = String(total);
+      $("kpiActive").textContent = String(active);
+      $("kpiPending").textContent = String(pending);
+    }
+
+    function adminFilteredList(){
+      const tab = state.adminTab;
+      let list = state.drivers.slice();
+      if(tab === "pending") list = list.filter(d => d.receiptStatus === "pending" && !isActive(d));
+      if(tab === "active") list = list.filter(d => isActive(d));
+      if(tab === "expired") list = list.filter(d => !isActive(d) && d.receiptStatus !== "pending");
+      list.sort((a,b) => (b.createdAt||0) - (a.createdAt||0));
+      return list;
+    }
+
+    function adminRow(d){
+      const active = isActive(d);
+      const pending = d.receiptStatus === "pending" && !active;
+      const statusTxt = active ? tr("badge_active") : (pending ? tr("badge_pending") : tr("badge_expired"));
+      const statusCls = active ? "bg-green-50 text-green-700" : (pending ? "bg-yellow-50 text-yellow-800" : "bg-red-50 text-red-700");
+
+      let subTxt = "—";
+      if(active){
+        const rem = formatRemaining(Number(d.subExpiresAt) - Date.now());
+        subTxt = `${tr("remaining")}: ${rem.days}d ${rem.hours}h ${rem.mins}m`;
+      }else{
+        subTxt = tr("ended");
+      }
+
+      const waDriver = `https://wa.me/212${String(d.phone||"").substring(1)}?text=${encodeURIComponent(
+`Admin → Driver
+
+Name: ${d.name}
+Phone: ${d.phone}
+Status: ${statusTxt}
+Expires: ${d.subExpiresAt ? fmtDate(d.subExpiresAt) : "-"}
+
+Please send receipt here.`
+      )}`;
+
+      return `
+        <tr>
+          <td class="font-black">${escapeHtml(d.name)}</td>
+          <td class="mono">${escapeHtml(d.phone)}</td>
+          <td class="mono">${escapeHtml(d.cin||"")}</td>
+          <td>${escapeHtml(d.city||"")}<div class="text-[11px] text-gray-400 font-black mt-1">${escapeHtml(d.area||"")}</div></td>
+          <td>${escapeHtml(d.vehicle||"")}</td>
+          <td><span class="pill ${statusCls}">${escapeHtml(statusTxt)}</span></td>
+          <td class="text-xs font-black">${escapeHtml(subTxt)}</td>
+          <td>
+            <div class="flex flex-wrap gap-2">
+              <button class="btn border bg-green-600 text-white hover:bg-green-700 adminAct" data-act="activate" data-id="${escapeHtml(d.id)}">${escapeHtml(tr("actActivate"))}</button>
+              <button class="btn border bg-white hover:bg-gray-50 adminAct" data-act="pending" data-id="${escapeHtml(d.id)}">${escapeHtml(tr("actPending"))}</button>
+              <button class="btn border bg-red-600 text-white hover:bg-red-700 adminAct" data-act="expire" data-id="${escapeHtml(d.id)}">${escapeHtml(tr("actExpire"))}</button>
+              <button class="btn border bg-gray-900 text-white hover:opacity-90 adminAct" data-act="delete" data-id="${escapeHtml(d.id)}">${escapeHtml(tr("actDelete"))}</button>
+              <a class="btn border bg-white hover:bg-gray-50" target="_blank" href="${waDriver}">
+                <i class="fab fa-whatsapp mr-1"></i> WhatsApp
+              </a>
+            </div>
+          </td>
+        </tr>
+      `;
     }
 
     function renderAdmin(){
-      const drivers = state.drivers || [];
-      const total = drivers.length;
-      const active = drivers.filter(d=>driverStatus(d)==="active").length;
-      const pending = drivers.filter(d=>String(d.receiptStatus||"").toLowerCase()==="pending").length;
+      if(!state.adminLogged) return;
+      adminKpis();
+      const list = adminFilteredList();
+      $("adminRows").innerHTML = list.map(adminRow).join("") || `
+        <tr><td colspan="8" class="text-center text-gray-500 font-black py-6">—</td></tr>
+      `;
 
-      $("kpiTotal").textContent = total;
-      $("kpiActive").textContent = active;
-      $("kpiPending").textContent = pending;
-
-      const tab = state.adminTab || "all";
-      let arr = [...drivers];
-
-      if(tab === "pending"){
-        arr = arr.filter(d=>String(d.receiptStatus||"").toLowerCase()==="pending");
-      }else if(tab === "active"){
-        arr = arr.filter(d=>driverStatus(d)==="active");
-      }else if(tab === "expired"){
-        arr = arr.filter(d=>driverStatus(d)==="expired");
-      }
-
-      arr.sort((a,b)=>Number(b.createdAt||0)-Number(a.createdAt||0));
-
-      $("adminRows").innerHTML = arr.map(d=>{
-        const st = driverStatus(d);
-        const exp = Number(d.subExpiresAt||0);
-        const id = String(d.id||"");
-        const phone = normalizePhone(d.phone||id);
-
-        return `
-          <tr>
-            <td>
-              <div class="font-black">${escapeHtml(d.name||"—")}</div>
-              <div class="text-[11px] text-gray-500">ID: <span class="mono">${escapeHtml(id)}</span></div>
-              <div class="text-[11px] text-gray-500">Created: ${fmtDate(d.createdAt)}</div>
-            </td>
-            <td class="mono">${escapeHtml(phone||"—")}</td>
-            <td class="mono">${escapeHtml(d.cin||"—")}</td>
-            <td>
-              <div class="font-black">${escapeHtml(d.city||"—")}</div>
-              <div class="text-[11px] text-gray-500">${escapeHtml(d.area||"—")}</div>
-            </td>
-            <td>${escapeHtml(d.vehicle||"—")}</td>
-            <td>
-              ${badge(st)}
-              <div class="text-[11px] text-gray-500 mt-1">Receipt: <b>${escapeHtml(d.receiptStatus||"—")}</b></div>
-            </td>
-            <td>
-              <div class="text-[11px]">Expire: <b>${fmtDate(exp)}</b></div>
-              <div class="text-[11px] text-gray-500">Remaining: ${escapeHtml(remainingText(d))}</div>
-            </td>
-            <td>
-              <div class="flex flex-wrap gap-2">
-                <button class="px-3 py-2 rounded-2xl bg-green-600 text-white font-black hover:bg-green-700"
-                        onclick="adminActivate('${escapeHtml(id)}')">
-                  ${escapeHtml(state.lang==="ar" ? `تفعيل ${SUB_DAYS} أيام` : (state.lang==="fr" ? `Activer ${SUB_DAYS} j` : `Activate ${SUB_DAYS}d`))}
-                </button>
-                <button class="px-3 py-2 rounded-2xl border font-black hover:bg-gray-50"
-                        onclick="adminMarkPending('${escapeHtml(id)}')">
-                  Pending
-                </button>
-                <button class="px-3 py-2 rounded-2xl border font-black hover:bg-gray-50"
-                        onclick="adminDelete('${escapeHtml(id)}')">
-                  ${escapeHtml(state.lang==="ar" ? "حذف" : (state.lang==="fr" ? "Supprimer" : "Delete"))}
-                </button>
-              </div>
-            </td>
-          </tr>
-        `;
-      }).join("");
+      // activate tab button style
+      document.querySelectorAll(".adminTab").forEach(b=>{
+        const tab = b.getAttribute("data-tab");
+        const on = tab === state.adminTab;
+        b.classList.toggle("bg-gray-900", on);
+        b.classList.toggle("text-white", on);
+        b.classList.toggle("border-gray-900", on);
+      });
     }
 
-    window.adminActivate = async function(id){
-      try{
-        const exp = nowMs() + SUB_MS;
-        const payload = {
-          ids: [String(id)],
-          patch: { subExpiresAt: exp, receiptStatus: "approved", receiptSubmittedAt: nowMs() }
-        };
-        const res = await api("bulk_patch", {}, payload);
-        if(!res || !res.ok) throw new Error(res?.error || "API error");
-        noteOk(t("adminActivated", { days: SUB_DAYS }));
-        await refreshRemote();
-      }catch(err){
-        noteErr(t("adminErrActivate") + (err.message||err));
-      }
-    }
+    async function adminAction(act, id){
+      const idx = state.drivers.findIndex(d => d.id === id);
+      if(idx < 0) return;
 
-    window.adminMarkPending = async function(id){
-      try{
-        const payload = { ids: [String(id)], patch: { receiptStatus: "pending", receiptSubmittedAt: nowMs() } };
-        const res = await api("bulk_patch", {}, payload);
-        if(!res || !res.ok) throw new Error(res?.error || "API error");
-        noteOk(t("adminPendingOk"));
-        await refreshRemote();
-      }catch(err){
-        noteErr(t("adminErrGeneric") + (err.message||err));
+      if(act === "delete"){
+        if(!confirm(tr("confirmDelete"))) return;
+        state.drivers.splice(idx, 1);
+      } else if(act === "activate"){
+        state.drivers[idx].subExpiresAt = Date.now() + SUB_MS;
+        state.drivers[idx].receiptStatus = "active";
+      } else if(act === "pending"){
+        state.drivers[idx].subExpiresAt = 0;
+        state.drivers[idx].receiptStatus = "pending";
+        state.drivers[idx].receiptSubmittedAt = Date.now();
+      } else if(act === "expire"){
+        state.drivers[idx].subExpiresAt = 0;
+        state.drivers[idx].receiptStatus = "expired";
       }
-    }
+      state.drivers[idx] && (state.drivers[idx].updatedAt = Date.now());
 
-    window.adminDelete = async function(id){
-      if(!confirm(t("confirmDelete"))) return;
-      try{
-        const res = await api("delete", {}, { ids: [String(id)] });
-        if(!res || !res.ok) throw new Error(res?.error || "API error");
-        noteOk(t("adminDeleted"));
-        await refreshRemote();
-      }catch(err){
-        noteErr(t("adminErrDelete") + (err.message||err));
-      }
+      await pushDrivers();
+      renderAdmin();
+      enforceDriverLockUI();
+      renderAll();
     }
 
     /********************
-     * Bindings
+     * Render All
      ********************/
-    function bindUI(){
-      $("navInstagram").href = SOCIAL_LINKS.instagram;
-      $("navFacebook").href  = SOCIAL_LINKS.facebook;
-      $("footWa").href       = SOCIAL_LINKS.whatsapp;
+    function renderCounts(list){
+      $("countPill").textContent = trFmt("countPill", { n: list.length });
+      $("updatedPill").textContent = trFmt("updatedPill", { d: state.updatedAt ? fmtDate(state.updatedAt) : "—" });
+    }
 
-      $("langSelect").addEventListener("change", (e)=> applyLanguage(e.target.value));
+    function renderAll(){
+      applyLang();
 
-      $("pickCustomer").addEventListener("click", ()=>{
-        setRole("customer"); closeRoleModal();
-        applyRoleUI();
-        noteOk(t("msgRoleCustomer"));
-      });
+      // role visibility
+      applyRole();
 
-      $("pickDriver").addEventListener("click", ()=>{
-        setRole("driver"); closeRoleModal();
-        applyRoleUI();
-        noteOk(t("msgRoleDriver"));
-        const last = localStorage.getItem(LAST_DRIVER_PHONE) || "";
-        if(last){
-          $("driverPhone").value = last;
-          tryAutoFillByPhone(last);
-        }
-      });
+      // customer
+      if(state.role === "customer"){
+        initMap();
+        const list = computeFilteredDrivers();
+        renderCounts(list);
 
-      $("switchRoleBtn").addEventListener("click", ()=>{
-        localStorage.removeItem(ROLE_KEY);
-        applyRoleUI();
-        openRoleModal();
-      });
+        $("driversFeed").innerHTML = list.map(renderDriverCard).join("") || `
+          <div class="bg-white border rounded-3xl p-6 text-center text-gray-500 font-black">
+            — ${escapeHtml(tr("noDrivers"))} —
+          </div>
+        `;
+        renderMapMarkers(list);
+        attachRatingEvents();
+        bindShowOnMapButtons();
+      }
 
-      // register (single button)
-      $("registerBtn").addEventListener("click", registerDriver);
-
-      // status button
-      $("checkStatusBtn").addEventListener("click", checkMyStatus);
-
-      // phone auto-fill
-      bindPhoneAutoFill();
-
-      // driver location
-      $("driverLocBtn").addEventListener("click", async ()=>{
-        try{
-          const loc = await locateMe();
-          driverDraftLoc = loc;
-          $("driverLocText").textContent = `✅ (${loc.lat.toFixed(5)}, ${loc.lon.toFixed(5)})`;
-          noteOk(state.lang==="ar" ? "تم أخذ الموقع ✅" : (state.lang==="fr" ? "Position enregistrée ✅" : "Location saved ✅"));
-        }catch(_){
-          toast(t("toastNoLoc"));
-        }
-      });
-
-      // lock overlay action
-      $("lockRechargeBtn").addEventListener("click", ()=>{
-        const driver = {
-          name: $("driverName").value.trim() || (state.lang==="ar" ? "سائق" : "Driver"),
-          phone: normalizePhone($("driverPhone").value) || "",
-          cin: $("driverCIN").value.trim().toUpperCase() || "—",
-          city: $("driverCityInput").value.trim() || "—",
-          area: $("driverAreaInput").value.trim() || "—",
-          vehicle: $("vehicleType").value || "—"
-        };
-        openReceiptWhatsApp(driver);
-      });
-
-      // feed controls
-      ["filterCity","filterArea","filterVehicle","sortBy"].forEach(id=>{
-        $(id).addEventListener("input", renderFeed);
-        $(id).addEventListener("change", renderFeed);
-      });
-      $("refreshBtn").addEventListener("click", refreshRemote);
-
-      // map controls
-      $("myLocBtn").addEventListener("click", async ()=>{
-        clearMarkers();
-        await setMyLocationOnMap();
-      });
-      $("mapClearBtn").addEventListener("click", clearMarkers);
-
-      // fullscreen map
-      $("mapFullBtn").addEventListener("click", ()=>{
-        const wrap = $("mapWrap");
-        wrap.classList.add("map-fullscreen");
-        $("mapExitFabBtn").classList.remove("hidden");
-        setTimeout(()=>state.map.invalidateSize(), 200);
-      });
-      $("mapExitFabBtn").addEventListener("click", ()=>{
-        const wrap = $("mapWrap");
-        wrap.classList.remove("map-fullscreen");
-        $("mapExitFabBtn").classList.add("hidden");
-        setTimeout(()=>state.map.invalidateSize(), 200);
-      });
+      // lock
+      enforceDriverLockUI();
 
       // admin
-      $("adminBtn").addEventListener("click", openAdmin);
-      $("adminClose").addEventListener("click", closeAdmin);
-
-      $("adminLoginBtn").addEventListener("click", ()=>{
-        const pass = $("adminPass").value;
-        if(pass !== ADMIN_PASSWORD){
-          $("adminLoginErr").textContent = t("adminPassWrong");
-          $("adminLoginErr").classList.remove("hidden");
-          return;
-        }
-        $("adminLoginErr").classList.add("hidden");
-        state.adminAuthed = true;
-        $("adminLoginBox").classList.add("hidden");
-        $("adminPanel").classList.remove("hidden");
-        renderAdmin();
-      });
-
-      $("adminLogoutBtn").addEventListener("click", ()=>{
-        // require password again
-        state.adminAuthed = false;
-        $("adminPass").value = "";
-        $("adminLoginBox").classList.remove("hidden");
-        $("adminPanel").classList.add("hidden");
-      });
-
-      $("adminRefreshBtn").addEventListener("click", refreshRemote);
-
-      document.querySelectorAll(".adminTab").forEach(btn=>{
-        btn.addEventListener("click", ()=>{
-          state.adminTab = btn.getAttribute("data-tab") || "all";
-          document.querySelectorAll(".adminTab").forEach(b=>b.classList.remove("bg-gray-900","text-white"));
-          btn.classList.add("bg-gray-900","text-white");
-          renderAdmin();
-        });
-      });
-
-      const firstTab = document.querySelector('.adminTab[data-tab="all"]');
-      if(firstTab) firstTab.classList.add("bg-gray-900","text-white");
+      if(state.adminLogged) renderAdmin();
     }
 
     /********************
-     * Init
+     * INIT + Events
      ********************/
-    async function init(){
-      fillCities();
-      initMap();
-      bindUI();
-
-      const savedLang = localStorage.getItem(LANG_KEY) || "ar";
-      $("langSelect").value = (savedLang==="fr"||savedLang==="en"||savedLang==="ar") ? savedLang : "ar";
-      applyLanguage($("langSelect").value);
-
-      bindAreaAutocomplete("driverAreaInput", "driverAreaList", (picked)=>{
-        if(picked && isFinite(picked.lat) && isFinite(picked.lon)){
-          driverDraftLoc = { lat: picked.lat, lon: picked.lon };
-        }
-      });
-
-      applyRoleUI();
-
-      // API pill
-      try{
-        const info = await api("info");
-        if(info && info.ok){
-          state.apiStatusOk = true;
-          state.apiStatusText = t("apiOk");
-        }else{
-          state.apiStatusOk = false;
-          state.apiStatusText = t("apiErr");
-        }
-      }catch(_){
-        state.apiStatusOk = false;
-        state.apiStatusText = t("apiErrSet");
-      }
-      updateApiPillVisibility();
-
-      loadCache();
-      renderFeed();
-      updatePills();
-
-      if(!getRole()){
-        openRoleModal();
-      }else{
-        if(getRole()==="driver"){
-          const last = localStorage.getItem(LAST_DRIVER_PHONE) || "";
-          if(last){
-            $("driverPhone").value = last;
-            tryAutoFillByPhone(last);
-          }
-        }
-      }
-
-      try{
-        await refreshRemote();
-      }catch(_){
-        noteErr(t("apiFetchNote"));
+    function restoreTrip(){
+      const saved = loadTrip();
+      if(saved){
+        if(saved.tripPick) state.tripPick = saved.tripPick;
+        if(saved.trip) state.trip = saved.trip;
+        if(saved.trip?.fromText) $("tripFrom").value = saved.trip.fromText;
+        if(saved.trip?.toText) $("tripTo").value = saved.trip.toText;
+        if(saved.trip?.distanceKm) showTripResult(saved.trip);
       }
     }
 
-    init();
-  </script>
+    function restoreFiltersUI(){
+      const f = getFilters();
+      $("filterCity").value = f.city || "";
+      $("filterArea").value = f.area || "";
+      $("filterVehicle").value = f.vehicle || "";
+      $("sortBy").value = f.sortBy || "new";
+      $("searchQ").value = f.q || "";
+      $("radiusKm").value = f.radiusKm || "5";
 
+      state.nearEnabled = !!f.near;
+      $("nearToggle").setAttribute("aria-pressed", state.nearEnabled ? "true" : "false");
+      $("nearToggle").classList.toggle("bg-green-100", state.nearEnabled);
+      $("nearToggle").classList.toggle("border-green-200", state.nearEnabled);
+      $("nearToggle").classList.toggle("text-green-800", state.nearEnabled);
+    }
+
+    function bindEvents(){
+      initSocials();
+
+      $("langSelect").onchange = () => {
+        state.lang = $("langSelect").value;
+        localStorage.setItem(LANG_KEY, state.lang);
+        renderAll();
+      };
+
+      $("adminBtn").onclick = openAdminModal;
+      $("adminClose").onclick = closeAdminModal;
+      $("adminLoginBtn").onclick = adminLogin;
+      $("adminLogoutBtn").onclick = adminLogout;
+      $("adminRefreshBtn").onclick = async ()=>{ await remotePoll(); renderAdmin(); };
+
+      $("adminRows").addEventListener("click", (e)=>{
+        const btn = e.target.closest(".adminAct");
+        if(!btn) return;
+        const act = btn.getAttribute("data-act");
+        const id = btn.getAttribute("data-id");
+        if(act && id) adminAction(act, id);
+      });
+
+      document.querySelectorAll(".adminTab").forEach(b=>{
+        b.onclick = () => {
+          state.adminTab = b.getAttribute("data-tab") || "all";
+          renderAdmin();
+        };
+      });
+
+      $("pickCustomer").onclick = () => {
+        state.role = "customer";
+        localStorage.setItem(ROLE_KEY, state.role);
+        closeRoleModal();
+        renderAll();
+      };
+      $("pickDriver").onclick = () => {
+        state.role = "driver";
+        localStorage.setItem(ROLE_KEY, state.role);
+        closeRoleModal();
+        renderAll();
+      };
+
+      $("switchRoleBtn").onclick = () => {
+        // toggle role and show role modal
+        localStorage.removeItem(ROLE_KEY);
+        state.role = "";
+        openRoleModal();
+        applyRole();
+      };
+
+      // Driver register
+      $("driverPhone").addEventListener("blur", autoFillByPhone);
+      $("registerBtn").onclick = registerDriver;
+      $("checkStatusBtn").onclick = checkStatus;
+
+      $("lockRechargeBtn").onclick = () => {
+        const last = localStorage.getItem(LAST_DRIVER_PHONE) || normalizePhone($("driverPhone").value||"");
+        const d = last ? findByPhone(last) : null;
+        const msg =
+`TAWSILA.ma — Activation
+
+Name: ${d?.name || ($("driverName").value||"").trim()}
+Phone: ${d?.phone || ($("driverPhone").value||"").trim()}
+City: ${d?.city || ($("driverCityInput").value||"").trim()}
+Area: ${d?.area || ($("driverAreaInput").value||"").trim()}
+Vehicle: ${d?.vehicle || ($("vehicleType").value||"").trim()}
+CIN: ${d?.cin || ($("driverCIN").value||"").trim()}
+
+Subscription: ${SUB_PRICE_DH} DH / ${SUB_DAYS} days
+
+(Please attach receipt photo)`;
+        window.open(waAdminLink(msg), "_blank");
+      };
+
+      $("driverLocBtn").onclick = enableDriverLocation;
+
+      // Customer location + map buttons
+      $("userLocBtn").onclick = enableUserLocation;
+      $("myLocBtn").onclick = enableUserLocation;
+
+      $("mapFullBtn").onclick = () => toggleMapFullscreen(true);
+      $("mapExitBtn").onclick = () => toggleMapFullscreen(false);
+      $("mapExitFabBtn").onclick = () => toggleMapFullscreen(false);
+      $("mapClearBtn").onclick = () => {
+        state.tripPick = { from:null, to:null };
+        state.trip = null;
+        $("tripResult").classList.add("hidden");
+        $("tripFrom").value = "";
+        $("tripTo").value = "";
+        saveTrip({ trip: null, tripPick: state.tripPick });
+        renderAll();
+      };
+
+      // Trip
+      $("calcTripBtn").onclick = calcTrip;
+      $("useMyLocAsFrom").onclick = async () => {
+        if(!state.userPos){
+          await enableUserLocation();
+          if(!state.userPos) return;
+        }
+        try{
+          const r = await reverseGeocode(state.userPos.lat, state.userPos.lon);
+          const label = niceLabelFromAddress(r.addr) || tr("myLocation") || "My location";
+          $("tripFrom").value = label;
+          state.tripPick.from = { label, lat: state.userPos.lat, lon: state.userPos.lon };
+          saveTrip({ trip: state.trip, tripPick: state.tripPick });
+          renderAll();
+        }catch(_){
+          const label = "My location";
+          $("tripFrom").value = label;
+          state.tripPick.from = { label, lat: state.userPos.lat, lon: state.userPos.lon };
+          saveTrip({ trip: state.trip, tripPick: state.tripPick });
+          renderAll();
+        }
+      };
+
+      // Filters
+      $("filterCity").oninput = () => { setFilters({ city: $("filterCity").value }); renderAll(); };
+      $("filterArea").oninput = () => { setFilters({ area: $("filterArea").value }); renderAll(); };
+      $("filterVehicle").onchange = () => { setFilters({ vehicle: $("filterVehicle").value }); renderAll(); };
+      $("sortBy").onchange = () => { setFilters({ sortBy: $("sortBy").value }); renderAll(); };
+      $("searchQ").oninput = () => { setFilters({ q: $("searchQ").value }); renderAll(); };
+      $("radiusKm").onchange = () => { setFilters({ radiusKm: $("radiusKm").value }); renderAll(); };
+
+      $("nearToggle").onclick = () => {
+        const f = getFilters();
+        const next = !f.near;
+        setFilters({ near: next });
+        $("nearToggle").setAttribute("aria-pressed", next ? "true" : "false");
+        $("nearToggle").classList.toggle("bg-green-100", next);
+        $("nearToggle").classList.toggle("border-green-200", next);
+        $("nearToggle").classList.toggle("text-green-800", next);
+        renderAll();
+      };
+
+      $("refreshBtn").onclick = async () => {
+        await remotePoll();
+        renderAll();
+      };
+
+      $("clearCacheBtn").onclick = () => {
+        localStorage.removeItem(STORAGE_KEY);
+        localStorage.removeItem(FILTERS_KEY);
+        localStorage.removeItem(RATINGS_KEY);
+        localStorage.removeItem(TRIP_KEY);
+        localStorage.removeItem(LAST_DRIVER_PHONE);
+        localStorage.removeItem(ROLE_KEY);
+        toastNote("success", "تم حذف المحفوظ.");
+        state.role = "";
+        openRoleModal();
+      };
+
+      // Autocomplete: driver area + trip from/to (من الكود الأول)
+      attachAutocomplete({ inputId:"driverAreaInput", listId:"driverAreaList", onPick:()=>{} });
+      attachAutocomplete({
+        inputId:"tripFrom",
+        listId:"tripFromList",
+        onPick:(p)=>{ state.tripPick.from = p; saveTrip({ trip: state.trip, tripPick: state.tripPick }); renderAll(); }
+      });
+      attachAutocomplete({
+        inputId:"tripTo",
+        listId:"tripToList",
+        onPick:(p)=>{ state.tripPick.to = p; saveTrip({ trip: state.trip, tripPick: state.tripPick }); renderAll(); }
+      });
+
+      // close admin when clicking backdrop
+      $("adminModal").addEventListener("click", (e)=>{ if(e.target.id === "adminModal") closeAdminModal(); });
+    }
+
+    async function boot(){
+      buildCities();
+      initSocials();
+
+      // default texts for driver loc
+      $("driverLocText").setAttribute("data-default", $("driverLocText").textContent);
+
+      // load from remote/cache
+      await syncFromRemoteFirst();
+
+      // restore UI
+      restoreTrip();
+      restoreFiltersUI();
+
+      // role
+      if(!state.role){
+        // hide sections until choose
+        $("registerSection").classList.add("hidden");
+        $("customerSection").classList.add("hidden");
+        $("goRegister").classList.add("hidden");
+        openRoleModal();
+      } else {
+        applyRole();
+      }
+
+      // set whatsapp footer
+      $("footWa").href = SOCIAL_LINKS.whatsapp;
+
+      bindEvents();
+      renderAll();
+
+      // poll
+      setInterval(remotePoll, 8000);
+    }
+
+    boot();
+  </script>
 </body>
 </html>
